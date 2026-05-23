@@ -1,0 +1,58 @@
+# Roadmap
+
+## Phase 0: Project Spine
+
+- Create product documentation.
+- Define data model.
+- Define report pipeline.
+- Define safety rules.
+- Set up GitHub project labels and issue templates.
+
+## Phase 1: Local Prototype
+
+- Build web report workspace.
+- Add mock iPhone transcript stream.
+- Add template selector.
+- Add LLM formatter endpoint.
+- Display raw transcript and formatted draft side by side.
+- Add copy button.
+
+## Phase 2: iPhone Dictation MVP
+
+- SwiftUI recording screen.
+- Speech-to-text integration.
+- Session pairing with web.
+- Pause/resume/stop controls.
+- Live transcript sync.
+
+## Phase 3: Radiology Formatting
+
+- CT abdomen/pelvis template.
+- CT head template.
+- Chest x-ray template.
+- MRI brain template.
+- Personal phrase library.
+- Impression generator.
+- Ambiguity flags.
+
+## Phase 4: Safety And QA
+
+- Laterality checker.
+- Measurement checker.
+- Findings/impression consistency checker.
+- Unsupported claim detector.
+- Revision history.
+- Final approval state.
+
+## Phase 5: Clinical Hardening
+
+- Authentication.
+- Encryption and retention settings.
+- Deployment documentation.
+- Institutional review checklist.
+- Optional private model endpoint.
+
+## First Build Target
+
+The first useful demo should be a web app that accepts typed or pasted fragmented dictation, formats it into a radiology report, shows flags, and provides a copy-ready output panel.
+
