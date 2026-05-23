@@ -4,6 +4,10 @@
 
 `radvoice`
 
+## Visibility
+
+Private repository.
+
 ## Suggested Description
 
 LLM-assisted radiology dictation for fragmented speech, structured draft reports, and synced web review.
@@ -94,4 +98,3 @@ Issues:
 - In Progress
 - Review
 - Done
-

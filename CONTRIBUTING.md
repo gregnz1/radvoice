@@ -2,6 +2,10 @@
 
 This project is early and should stay clinician-led.
 
+## Repository Policy
+
+RadVoice is private proprietary software. Contributions are for authorized collaborators only and should not be copied into public repositories or shared externally without explicit owner approval.
+
 ## Working Principles
 
 - Keep clinical safety visible in every feature.
@@ -16,4 +20,3 @@ This project is early and should stay clinician-led.
 3. Add or update docs when behavior changes.
 4. Add tests for parsing, prompt contracts, and safety checks.
 5. Open a pull request with screenshots or sample inputs when relevant.
-

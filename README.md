@@ -4,6 +4,10 @@ RadVoice is a clinician-controlled radiology dictation system for turning fragme
 
 The product pairs an iPhone dictation app with a synced web interface. The iPhone acts as a microphone and workflow controller. The web app shows the live transcript, structured report draft, quality flags, and copy-ready output for the RIS.
 
+## Repository Status
+
+This is a private proprietary project. Do not publish, mirror, or open-source this repository without explicit owner approval.
+
 ## Product Principles
 
 - Dictation should match how radiologists actually think: fragmented, iterative, and case-driven.
