@@ -1,8 +1,10 @@
 # RadVoice
 
-RadVoice is a clinician-controlled radiology dictation system for turning fragmented spoken observations into consistent draft reports.
+RadVoice is a clinician-controlled radiology dictation, transcription, formatting, and text-transfer tool for turning fragmented spoken observations into consistent draft reports.
 
 The product pairs an iPhone dictation app with a synced web interface. The iPhone acts as a microphone and workflow controller. The web app shows the live transcript, structured report draft, quality flags, and copy-ready output for the RIS.
+
+RadVoice does not accept patient identifiers, store patient information, interpret medical images, make diagnoses, recommend findings, autonomously finalize reports, or submit reports directly to a RIS.
 
 ## Repository Status
 
@@ -14,6 +16,7 @@ This is a private proprietary project. Do not publish, mirror, or open-source th
 - The LLM formats and checks. It does not invent findings.
 - The raw transcript remains visible and auditable.
 - The radiologist stays in control of the final report.
+- Patient identifiers are not accepted.
 - Copy/paste into RIS is the first integration target; direct RIS writeback is deliberately out of scope for the MVP.
 
 ## MVP

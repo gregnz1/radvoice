@@ -67,6 +67,12 @@ h1 {
   line-height: 1.15;
 }
 
+.subtitle {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 h2 {
   font-size: 15px;
   line-height: 1.2;

@@ -4,11 +4,16 @@
 
 RadVoice generates draft reports only. The radiologist must review and approve all output before use in the RIS.
 
+RadVoice is positioned as a dictation, transcription, formatting, and text-transfer tool. It is not intended to interpret images, make diagnoses, recommend findings, autonomously finalize reports, or submit reports directly to a RIS.
+
+RadVoice should not accept patient identifiers or store patient information.
+
 ## Safety Requirements
 
 - Show raw transcript alongside generated draft.
 - Keep generated report text editable.
 - Do not auto-submit to RIS.
+- Do not accept patient identifiers.
 - Do not invent normal findings unless explicitly permitted by a selected normal template.
 - Flag uncertainty rather than resolving it silently.
 - Highlight laterality, measurement, and contradiction risks.
@@ -27,6 +32,7 @@ RadVoice generates draft reports only. The radiologist must review and approve a
 ## Privacy Requirements
 
 - Minimize patient identifiers in the app.
+- In the intended workflow, patient identifiers should not be entered at all.
 - Prefer accession/session labels over patient names in MVP.
 - Encrypt data in transit.
 - Encrypt persisted report sessions.
@@ -36,4 +42,3 @@ RadVoice generates draft reports only. The radiologist must review and approve a
 ## Regulatory Note
 
 This documentation is not legal or regulatory advice. Before clinical deployment, the project needs formal review for local privacy law, institutional policy, medical device implications, and vendor risk requirements.
-

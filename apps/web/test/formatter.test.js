@@ -43,4 +43,8 @@ assert.equal(
   false,
 );
 
+const privacyResult = formatDictation("patient name jane smith dob 01/02/1950 ct abdomen", ctap);
+
+assert.ok(privacyResult.flags.some((flag) => flag.category === "privacy"));
+
 console.log("formatter tests passed");

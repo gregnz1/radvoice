@@ -132,6 +132,18 @@ const lateralityRequiredTerms = [
   "fracture",
 ];
 const measurementRequiredTerms = ["mass", "lesion", "nodule", "collection"];
+const patientIdentifierPatterns = [
+  /\b(patient name|name is|patient is)\b/i,
+  /\b(date of birth|dob)\b/i,
+  /\b(mrn|medical record|ur number|urn)\b/i,
+  /\b(accession|acc number)\b/i,
+  /\b(medicare number|medicare)\b/i,
+  /\b\d{2}[/-]\d{2}[/-]\d{2,4}\b/,
+  /\b\d{6,}\b/,
+  /\b[A-Z]{2,4}\d{5,}\b/i,
+  /\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/i,
+  /\b(?:\+?\d[\d\s().-]{7,}\d)\b/,
+];
 
 export function formatDictation(input, template) {
   const normalized = normalize(input);
@@ -195,6 +207,17 @@ function buildFlags(text, sectionFindings) {
   const mentionsFinding = findingTerms.some((term) => text.includes(term));
   const hasPositiveLateralizableFinding = hasPositiveCandidate(text, lateralityRequiredTerms);
   const hasPositiveMeasurableFinding = hasPositiveCandidate(text, measurementRequiredTerms);
+  const hasPossiblePatientIdentifier = patientIdentifierPatterns.some((pattern) =>
+    pattern.test(text),
+  );
+
+  if (hasPossiblePatientIdentifier) {
+    flags.push({
+      severity: "critical",
+      category: "privacy",
+      message: "Possible patient identifier detected. RadVoice should not receive patient information.",
+    });
+  }
 
   if (hasPositiveLateralizableFinding && !hasLaterality) {
     flags.push({
