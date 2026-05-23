@@ -170,13 +170,38 @@ button:hover {
   margin-top: 14px;
 }
 
-.sample-block {
+.sample-block,
+.session-block {
   display: grid;
   gap: 8px;
   margin-top: 22px;
 }
 
-.sample {
+.session-block p,
+.sample-block p {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.session-id {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sample,
+.session-block button {
   text-align: left;
   font-weight: 600;
 }
@@ -292,4 +317,3 @@ textarea {
     font-size: 23px;
   }
 }
-

@@ -11,7 +11,7 @@
 ## Phase 1: Local Prototype
 
 - [x] Build web report workspace.
-- [ ] Add mock iPhone transcript stream.
+- [x] Add mock iPhone transcript stream.
 - [x] Add template selector.
 - [x] Add formatter API boundary.
 - [x] Display raw transcript and formatted draft side by side.

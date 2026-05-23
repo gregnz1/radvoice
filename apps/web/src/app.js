@@ -1,6 +1,7 @@
 import { formatDictation } from "./formatter.js";
 import { samples, templates } from "./templates.js";
 
+const API_BASE = "http://localhost:8787";
 const templateSelect = document.querySelector("#templateSelect");
 const dictationInput = document.querySelector("#dictationInput");
 const reportOutput = document.querySelector("#reportOutput");
@@ -8,9 +9,15 @@ const jsonOutput = document.querySelector("#jsonOutput");
 const flagList = document.querySelector("#flagList");
 const flagCount = document.querySelector("#flagCount");
 const wordCount = document.querySelector("#wordCount");
+const sessionId = document.querySelector("#sessionId");
 const formatButton = document.querySelector("#formatButton");
 const clearButton = document.querySelector("#clearButton");
 const copyButton = document.querySelector("#copyButton");
+const newSessionButton = document.querySelector("#newSessionButton");
+const mockStreamButton = document.querySelector("#mockStreamButton");
+
+let activeSessionId = "";
+let streamTimer = 0;
 
 for (const template of templates) {
   const option = document.createElement("option");
@@ -26,8 +33,19 @@ dictationInput.addEventListener("input", () => {
   renderLocalPreview();
 });
 
+newSessionButton.addEventListener("click", async () => {
+  await createSession({ clearText: true });
+});
+
+mockStreamButton.addEventListener("click", async () => {
+  await toggleMockStream();
+});
+
 clearButton.addEventListener("click", () => {
   dictationInput.value = "";
+  activeSessionId = "";
+  sessionId.textContent = "No session";
+  stopMockStream();
   render();
 });
 
@@ -73,7 +91,7 @@ function renderLocalPreview() {
 
 async function renderFromApi() {
   try {
-    const response = await fetch("http://localhost:8787/format", {
+    const response = await fetch(`${API_BASE}/format`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -101,6 +119,127 @@ async function renderFromApi() {
       ],
     });
   }
+}
+
+async function createSession({ clearText }) {
+  const response = await fetch(`${API_BASE}/sessions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ templateId: getTemplate().id }),
+  });
+
+  if (!response.ok) {
+    renderLocalPreview();
+    sessionId.textContent = "API unavailable";
+    return null;
+  }
+
+  const session = await response.json();
+  activeSessionId = session.id;
+  sessionId.textContent = session.id;
+
+  if (clearText) dictationInput.value = "";
+
+  showSession(session);
+  return session;
+}
+
+async function appendSegment(text) {
+  if (!activeSessionId) {
+    const session = await createSession({ clearText: true });
+    if (!session) return;
+  }
+
+  const response = await fetch(`${API_BASE}/sessions/${activeSessionId}/segments`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ source: "iphone-mock", text }),
+  });
+
+  if (!response.ok) {
+    sessionId.textContent = "Session sync failed";
+    stopMockStream();
+    return;
+  }
+
+  const session = await response.json();
+  showSession(session);
+}
+
+function showSession(session) {
+  dictationInput.value = session.segments.map((segment) => segment.text).join(" ");
+  updateWordCount();
+  showResult({
+    ...session.draft,
+    provider: "session-api",
+    sessionId: session.id,
+    segmentCount: session.segments.length,
+    updatedAt: session.updatedAt,
+  });
+}
+
+async function toggleMockStream() {
+  if (streamTimer) {
+    stopMockStream();
+    return;
+  }
+
+  const fragments = getMockFragments();
+  let index = 0;
+  mockStreamButton.textContent = "Stop Mock";
+  const session = await createSession({ clearText: true });
+
+  if (!session) {
+    stopMockStream();
+    return;
+  }
+
+  streamTimer = window.setInterval(async () => {
+    await appendSegment(fragments[index]);
+    index += 1;
+
+    if (index >= fragments.length) {
+      stopMockStream();
+    }
+  }, 850);
+}
+
+function stopMockStream() {
+  window.clearInterval(streamTimer);
+  streamTimer = 0;
+  mockStreamButton.textContent = "Mock iPhone";
+}
+
+function getMockFragments() {
+  if (templateSelect.value === "ct-head") {
+    return [
+      "ct head",
+      "no bleed no mass effect",
+      "ventricles normal",
+      "chronic small vessel change",
+      "impression no acute",
+    ];
+  }
+
+  if (templateSelect.value === "chest-xray") {
+    return [
+      "chest xray",
+      "heart size normal",
+      "lungs clear",
+      "no pleural effusion no pneumothorax",
+      "impression no acute cardiopulmonary disease",
+    ];
+  }
+
+  return [
+    "ct abdomen pelvis with contrast",
+    "liver fine gallbladder removed",
+    "pancreas normal spleen okay",
+    "kidneys no hydronephrosis",
+    "mild diverticular disease no obstruction",
+    "no free air no free fluid",
+    "impression nothing acute",
+  ];
 }
 
 function showResult(result) {

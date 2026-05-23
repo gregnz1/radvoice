@@ -26,6 +26,31 @@ try {
   assert.match(result.report, /Liver: Unremarkable/);
   assert.match(result.report, /No acute intra-abdominal or pelvic abnormality/);
 
+  const sessionResponse = await fetch(`http://localhost:${port}/sessions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ templateId: "ct-head" }),
+  });
+
+  assert.equal(sessionResponse.status, 201);
+  const session = await sessionResponse.json();
+  assert.equal(session.status, "active");
+  assert.equal(session.templateId, "ct-head");
+
+  const segmentResponse = await fetch(`http://localhost:${port}/sessions/${session.id}/segments`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      source: "iphone",
+      text: "ct head no bleed no mass effect impression no acute",
+    }),
+  });
+
+  assert.equal(segmentResponse.status, 201);
+  const updatedSession = await segmentResponse.json();
+  assert.equal(updatedSession.segments.length, 1);
+  assert.match(updatedSession.draft.report, /No acute intracranial hemorrhage/);
+
   console.log("api tests passed");
 } finally {
   server.kill();
@@ -45,4 +70,3 @@ async function waitForHealth(portNumber) {
 
   throw new Error("API did not become healthy in time.");
 }
-

@@ -3,6 +3,7 @@ import { formatDictation } from "../../../apps/web/src/formatter.js";
 import { templates } from "../../../apps/web/src/templates.js";
 
 const port = Number.parseInt(process.env.API_PORT ?? "8787", 10);
+const sessions = new Map();
 
 const server = createServer(async (request, response) => {
   setCorsHeaders(response);
@@ -25,6 +26,23 @@ const server = createServer(async (request, response) => {
 
   if (request.method === "POST" && request.url === "/format") {
     await handleFormat(request, response);
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/sessions") {
+    await handleCreateSession(request, response);
+    return;
+  }
+
+  const sessionMatch = request.url?.match(/^\/sessions\/([^/]+)$/);
+  if (request.method === "GET" && sessionMatch) {
+    handleGetSession(response, sessionMatch[1]);
+    return;
+  }
+
+  const segmentMatch = request.url?.match(/^\/sessions\/([^/]+)\/segments$/);
+  if (request.method === "POST" && segmentMatch) {
+    await handleAddSegment(request, response, segmentMatch[1]);
     return;
   }
 
@@ -70,6 +88,79 @@ async function handleFormat(request, response) {
   }
 }
 
+async function handleCreateSession(request, response) {
+  const body = await readJson(request);
+  const templateId = typeof body.templateId === "string" ? body.templateId : templates[0].id;
+  const template = templates.find((item) => item.id === templateId);
+
+  if (!template) {
+    sendJson(response, 400, {
+      error: "invalid_template",
+      message: "templateId must match a known report template.",
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const session = {
+    id: crypto.randomUUID(),
+    status: "active",
+    templateId,
+    segments: [],
+    draft: formatDictation("", template),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  sessions.set(session.id, session);
+  sendJson(response, 201, session);
+}
+
+function handleGetSession(response, sessionId) {
+  const session = sessions.get(sessionId);
+
+  if (!session) {
+    sendJson(response, 404, { error: "session_not_found" });
+    return;
+  }
+
+  sendJson(response, 200, session);
+}
+
+async function handleAddSegment(request, response, sessionId) {
+  const session = sessions.get(sessionId);
+
+  if (!session) {
+    sendJson(response, 404, { error: "session_not_found" });
+    return;
+  }
+
+  const body = await readJson(request);
+  if (typeof body.text !== "string" || body.text.trim().length === 0) {
+    sendJson(response, 400, {
+      error: "invalid_segment",
+      message: "text must be a non-empty string.",
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
+  session.segments.push({
+    id: crypto.randomUUID(),
+    text: body.text.trim(),
+    source: typeof body.source === "string" ? body.source : "iphone",
+    sequence: session.segments.length + 1,
+    createdAt: now,
+  });
+
+  const template = templates.find((item) => item.id === session.templateId) ?? templates[0];
+  const fullText = session.segments.map((segment) => segment.text).join(" ");
+  session.draft = formatDictation(fullText, template);
+  session.updatedAt = now;
+
+  sendJson(response, 201, session);
+}
+
 function setCorsHeaders(response) {
   response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
@@ -91,4 +182,3 @@ async function readJson(request) {
   const raw = Buffer.concat(chunks).toString("utf8");
   return raw.length > 0 ? JSON.parse(raw) : {};
 }
-

@@ -38,6 +38,37 @@ Request:
 }
 ```
 
+## `POST /sessions`
+
+Creates an in-memory report session.
+
+Request:
+
+```json
+{
+  "templateId": "ct-head"
+}
+```
+
+## `GET /sessions/:id`
+
+Returns the report session, transcript segments, and latest draft.
+
+## `POST /sessions/:id/segments`
+
+Appends a transcript segment and regenerates the draft.
+
+Request:
+
+```json
+{
+  "source": "iphone",
+  "text": "ct head no bleed no mass effect"
+}
+```
+
+The in-memory store is for local prototype work only. Persistent sync will move to the database layer.
+
 Response:
 
 ```json
@@ -51,4 +82,3 @@ Response:
   "generatedAt": "2026-05-23T00:00:00.000Z"
 }
 ```
-

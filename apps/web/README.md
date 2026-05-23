@@ -31,6 +31,8 @@ http://localhost:5173
 - Template selector.
 - Fragmented dictation input.
 - Formatter API integration with browser-local fallback.
+- Live session creation.
+- Mock iPhone transcript streaming into the backend.
 - Quality flags for laterality, measurement, contradiction, and unsupported text.
 - Copy-ready report output.
 - JSON formatter contract preview.
