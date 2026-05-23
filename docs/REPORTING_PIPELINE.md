@@ -32,6 +32,24 @@ Impression:
 No acute intra-abdominal or pelvic abnormality.
 ```
 
+If a dictation does not match a specific study template, RadVoice should fall back to a generic report structure:
+
+```text
+RADIOLOGY REPORT
+
+Indication:
+...
+
+Technique:
+...
+
+Findings:
+...
+
+Impression:
+...
+```
+
 ## 3. Final Report Text
 
 The final report text is the clinician-approved version copied into the RIS.
@@ -79,4 +97,3 @@ The formatter prompt must require:
   "unsupported_claims": []
 }
 ```
-

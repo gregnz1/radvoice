@@ -4,6 +4,7 @@ import { templates } from "../src/templates.js";
 
 const ctap = templates.find((template) => template.id === "ct-abdomen-pelvis");
 const cthead = templates.find((template) => template.id === "ct-head");
+const generic = templates.find((template) => template.id === "generic-report");
 
 const abdomenResult = formatDictation(
   "ct abdomen pelvis liver fine gallbladder removed pancreas normal spleen okay kidneys no hydronephrosis mild diverticular disease no obstruction no free air no free fluid impression nothing acute",
@@ -46,5 +47,15 @@ assert.equal(
 const privacyResult = formatDictation("patient name jane smith dob 01/02/1950 ct abdomen", ctap);
 
 assert.ok(privacyResult.flags.some((flag) => flag.category === "privacy"));
+
+const genericResult = formatDictation(
+  "indication abdominal pain technique ct performed findings no acute abnormality impression no acute abnormality",
+  generic,
+);
+
+assert.match(genericResult.report, /Indication:\nAbdominal pain/);
+assert.match(genericResult.report, /Technique:\nCt performed/);
+assert.match(genericResult.report, /Findings:\nNo acute abnormality/);
+assert.match(genericResult.report, /Impression:\nNo acute abnormality/);
 
 console.log("formatter tests passed");

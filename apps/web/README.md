@@ -29,6 +29,7 @@ http://localhost:5173
 ## Current Features
 
 - Template selector.
+- Generic fallback report format with Indication, Technique, Findings, and Impression.
 - Fragmented dictation input.
 - Visible no-patient-identifiers and draft-only positioning.
 - Formatter API integration with browser-local fallback.

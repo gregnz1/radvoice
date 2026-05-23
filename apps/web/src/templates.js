@@ -1,5 +1,13 @@
 export const templates = [
   {
+    id: "generic-report",
+    name: "Generic Report",
+    title: "RADIOLOGY REPORT",
+    sections: ["Indication", "Technique", "Findings"],
+    normalImpression: "No acute abnormality identified.",
+    generic: true,
+  },
+  {
     id: "ct-abdomen-pelvis",
     name: "CT Abdomen/Pelvis",
     title: "CT ABDOMEN AND PELVIS",
@@ -45,5 +53,6 @@ export const samples = {
     "ct head no bleed no mass effect ventricles normal chronic small vessel change no skull fracture sinuses clear impression no acute intracranial abnormality",
   cxr:
     "chest xray heart size normal lungs clear no pleural effusion no pneumothorax no acute osseous abnormality impression no acute cardiopulmonary disease",
+  generic:
+    "indication pain technique ultrasound performed findings no focal abnormality impression no acute abnormality",
 };
-

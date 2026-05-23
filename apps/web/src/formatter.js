@@ -148,17 +148,24 @@ const patientIdentifierPatterns = [
 export function formatDictation(input, template) {
   const normalized = normalize(input);
   const sectionFindings = new Map(template.sections.map((section) => [section, []]));
+  const genericSections = template.generic ? extractGenericSections(normalized) : null;
 
-  for (const rule of rules) {
-    if (!sectionFindings.has(rule.section)) continue;
+  if (genericSections) {
+    addUnique(sectionFindings.get("Indication"), genericSections.indication);
+    addUnique(sectionFindings.get("Technique"), genericSections.technique);
+    addUnique(sectionFindings.get("Findings"), genericSections.findings);
+  } else {
+    for (const rule of rules) {
+      if (!sectionFindings.has(rule.section)) continue;
 
-    if (rule.patterns.some((pattern) => pattern.test(normalized))) {
-      addUnique(sectionFindings.get(rule.section), rule.text);
+      if (rule.patterns.some((pattern) => pattern.test(normalized))) {
+        addUnique(sectionFindings.get(rule.section), rule.text);
+      }
     }
   }
 
   const flags = buildFlags(normalized, sectionFindings);
-  const impression = buildImpression(normalized, template, sectionFindings);
+  const impression = genericSections?.impression ?? buildImpression(normalized, template, sectionFindings);
   const report = buildReport(template, sectionFindings, impression, flags);
 
   return {
@@ -179,7 +186,45 @@ function normalize(input) {
 }
 
 function addUnique(items, value) {
+  if (!value) return;
   if (!items.includes(value)) items.push(value);
+}
+
+function extractGenericSections(text) {
+  return {
+    indication: cleanGenericSection(extractBetween(text, "indication", ["technique", "findings", "impression"])),
+    technique: cleanGenericSection(extractBetween(text, "technique", ["findings", "impression"])),
+    findings: cleanGenericSection(extractBetween(text, "findings", ["impression"])) || cleanGenericSection(text),
+    impression:
+      cleanGenericSection(extractBetween(text, "impression", [])) || "No impression provided in dictation.",
+  };
+}
+
+function extractBetween(text, startLabel, endLabels) {
+  const startMatch = new RegExp(`\\b${startLabel}\\b`, "i").exec(text);
+  if (!startMatch) return "";
+
+  const startIndex = startMatch.index + startMatch[0].length;
+  let endIndex = text.length;
+
+  for (const endLabel of endLabels) {
+    const endMatch = new RegExp(`\\b${endLabel}\\b`, "i").exec(text.slice(startIndex));
+    if (endMatch) {
+      endIndex = Math.min(endIndex, startIndex + endMatch.index);
+    }
+  }
+
+  return text.slice(startIndex, endIndex);
+}
+
+function cleanGenericSection(text) {
+  const cleaned = text.trim();
+  if (!cleaned) return "";
+  return sentenceCase(cleaned);
+}
+
+function sentenceCase(text) {
+  return `${text.charAt(0).toUpperCase()}${text.slice(1)}`.replace(/\s+/g, " ");
 }
 
 function buildImpression(text, template, sectionFindings) {
@@ -272,6 +317,10 @@ function hasPositiveCandidate(text, terms) {
 }
 
 function buildReport(template, sectionFindings, impression, flags) {
+  if (template.generic) {
+    return buildGenericReport(template, sectionFindings, impression, flags);
+  }
+
   const lines = [template.title, "", "Findings:"];
 
   for (const [section, findings] of sectionFindings.entries()) {
@@ -285,6 +334,27 @@ function buildReport(template, sectionFindings, impression, flags) {
   }
 
   lines.push("", "Impression:", impression);
+
+  if (flags.length > 0) {
+    lines.push("", "Draft Flags:");
+    for (const flag of flags) {
+      lines.push(`[${flag.severity.toUpperCase()}] ${flag.message}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function buildGenericReport(template, sectionFindings, impression, flags) {
+  const lines = [template.title, ""];
+
+  for (const [section, findings] of sectionFindings.entries()) {
+    lines.push(`${section}:`);
+    lines.push(findings.length > 0 ? findings.join(" ") : "Not specified.");
+    lines.push("");
+  }
+
+  lines.push("Impression:", impression);
 
   if (flags.length > 0) {
     lines.push("", "Draft Flags:");

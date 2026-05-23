@@ -1,5 +1,5 @@
-import { formatDictation } from "./formatter.js";
-import { samples, templates } from "./templates.js";
+import { formatDictation } from "./formatter.js?v=generic-report";
+import { samples, templates } from "./templates.js?v=generic-report";
 
 const API_BASE = "http://localhost:8787";
 const templateSelect = document.querySelector("#templateSelect");
@@ -65,6 +65,7 @@ document.querySelectorAll(".sample").forEach((button) => {
     if (button.dataset.sample === "cthead") templateSelect.value = "ct-head";
     if (button.dataset.sample === "cxr") templateSelect.value = "chest-xray";
     if (button.dataset.sample === "ctap") templateSelect.value = "ct-abdomen-pelvis";
+    if (button.dataset.sample === "generic") templateSelect.value = "generic-report";
     render();
   });
 });
@@ -276,5 +277,6 @@ function renderFlags(flags) {
   }
 }
 
-dictationInput.value = samples.ctap;
+templateSelect.value = "generic-report";
+dictationInput.value = samples.generic;
 render();

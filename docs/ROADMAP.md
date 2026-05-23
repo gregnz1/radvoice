@@ -13,6 +13,7 @@
 - [x] Build web report workspace.
 - [x] Add mock iPhone transcript stream.
 - [x] Add template selector.
+- [x] Add generic fallback report template.
 - [x] Add formatter API boundary.
 - [x] Display raw transcript and formatted draft side by side.
 - [x] Add copy button.
