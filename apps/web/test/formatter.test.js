@@ -6,13 +6,17 @@ const ctap = templates.find((template) => template.id === "ct-abdomen-pelvis");
 const cthead = templates.find((template) => template.id === "ct-head");
 
 const abdomenResult = formatDictation(
-  "ct abdomen pelvis liver fine gallbladder removed mild diverticular disease no free air impression nothing acute",
+  "ct abdomen pelvis liver fine gallbladder removed pancreas normal spleen okay kidneys no hydronephrosis mild diverticular disease no obstruction no free air no free fluid impression nothing acute",
   ctap,
 );
 
 assert.match(abdomenResult.report, /Liver: Unremarkable/);
 assert.match(abdomenResult.report, /Gallbladder: Surgically absent/);
 assert.match(abdomenResult.report, /No acute intra-abdominal or pelvic abnormality/);
+assert.equal(
+  abdomenResult.flags.some((flag) => flag.category === "laterality"),
+  false,
+);
 
 const headResult = formatDictation(
   "ct head no bleed no mass effect chronic small vessel change ventricles normal impression no acute",
@@ -29,4 +33,3 @@ assert.ok(flaggedResult.flags.some((flag) => flag.category === "laterality"));
 assert.ok(flaggedResult.flags.some((flag) => flag.category === "measurement"));
 
 console.log("formatter tests passed");
-

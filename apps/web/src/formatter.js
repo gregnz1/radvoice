@@ -122,6 +122,15 @@ const findingTerms = [
 ];
 
 const lateralityTerms = ["left", "right", "bilateral"];
+const lateralityRequiredTerms = [
+  "mass",
+  "lesion",
+  "nodule",
+  "collection",
+  "abscess",
+  "appendicitis",
+  "fracture",
+];
 
 export function formatDictation(input, template) {
   const normalized = normalize(input);
@@ -183,8 +192,9 @@ function buildFlags(text, sectionFindings) {
   const hasLaterality = lateralityTerms.some((term) => text.includes(term));
   const hasMeasure = /\b\d+(\.\d+)?\s*(mm|cm)\b/i.test(text);
   const mentionsFinding = findingTerms.some((term) => text.includes(term));
+  const hasPositiveLateralizableFinding = hasPositiveLateralityCandidate(text);
 
-  if (mentionsFinding && !hasLaterality) {
+  if (hasPositiveLateralizableFinding && !hasLaterality) {
     flags.push({
       severity: "warning",
       category: "laterality",
@@ -220,6 +230,22 @@ function buildFlags(text, sectionFindings) {
   return flags;
 }
 
+function hasPositiveLateralityCandidate(text) {
+  for (const term of lateralityRequiredTerms) {
+    const pattern = new RegExp(`\\b${term}\\b`, "gi");
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+      const precedingText = text.slice(Math.max(0, match.index - 40), match.index);
+      if (!/\b(no|without|absent|negative for|no evidence of)\b[\w\s-]{0,40}$/i.test(precedingText)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 function buildReport(template, sectionFindings, impression, flags) {
   const lines = [template.title, "", "Findings:"];
 
@@ -244,4 +270,3 @@ function buildReport(template, sectionFindings, impression, flags) {
 
   return lines.join("\n");
 }
-
