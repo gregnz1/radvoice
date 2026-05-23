@@ -40,7 +40,7 @@ Request:
 
 ## `POST /sessions`
 
-Creates an in-memory report session.
+Creates an in-memory report session with a short pairing code.
 
 Request:
 
@@ -53,6 +53,10 @@ Request:
 ## `GET /sessions/:id`
 
 Returns the report session, transcript segments, and latest draft.
+
+## `GET /sessions/pair/:code`
+
+Returns the report session associated with a short pairing code.
 
 ## `POST /sessions/:id/segments`
 

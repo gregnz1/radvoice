@@ -10,6 +10,7 @@ const flagList = document.querySelector("#flagList");
 const flagCount = document.querySelector("#flagCount");
 const wordCount = document.querySelector("#wordCount");
 const sessionId = document.querySelector("#sessionId");
+const pairingCode = document.querySelector("#pairingCode");
 const formatButton = document.querySelector("#formatButton");
 const clearButton = document.querySelector("#clearButton");
 const copyButton = document.querySelector("#copyButton");
@@ -45,6 +46,7 @@ clearButton.addEventListener("click", () => {
   dictationInput.value = "";
   activeSessionId = "";
   sessionId.textContent = "No session";
+  pairingCode.textContent = "----";
   stopMockStream();
   render();
 });
@@ -136,7 +138,7 @@ async function createSession({ clearText }) {
 
   const session = await response.json();
   activeSessionId = session.id;
-  sessionId.textContent = session.id;
+  showSessionIdentity(session);
 
   if (clearText) dictationInput.value = "";
 
@@ -167,6 +169,7 @@ async function appendSegment(text) {
 }
 
 function showSession(session) {
+  showSessionIdentity(session);
   dictationInput.value = session.segments.map((segment) => segment.text).join(" ");
   updateWordCount();
   showResult({
@@ -176,6 +179,11 @@ function showSession(session) {
     segmentCount: session.segments.length,
     updatedAt: session.updatedAt,
   });
+}
+
+function showSessionIdentity(session) {
+  pairingCode.textContent = session.pairingCode ?? "----";
+  sessionId.textContent = session.id;
 }
 
 async function toggleMockStream() {

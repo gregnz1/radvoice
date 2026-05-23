@@ -4,6 +4,7 @@ import { templates } from "../../../apps/web/src/templates.js";
 
 const port = Number.parseInt(process.env.API_PORT ?? "8787", 10);
 const sessions = new Map();
+const pairings = new Map();
 
 const server = createServer(async (request, response) => {
   setCorsHeaders(response);
@@ -31,6 +32,12 @@ const server = createServer(async (request, response) => {
 
   if (request.method === "POST" && request.url === "/sessions") {
     await handleCreateSession(request, response);
+    return;
+  }
+
+  const pairingMatch = request.url?.match(/^\/sessions\/pair\/([A-Z0-9-]+)$/);
+  if (request.method === "GET" && pairingMatch) {
+    handlePairSession(response, pairingMatch[1]);
     return;
   }
 
@@ -102,8 +109,10 @@ async function handleCreateSession(request, response) {
   }
 
   const now = new Date().toISOString();
+  const pairingCode = createPairingCode();
   const session = {
     id: crypto.randomUUID(),
+    pairingCode,
     status: "active",
     templateId,
     segments: [],
@@ -113,7 +122,20 @@ async function handleCreateSession(request, response) {
   };
 
   sessions.set(session.id, session);
+  pairings.set(pairingCode, session.id);
   sendJson(response, 201, session);
+}
+
+function handlePairSession(response, rawPairingCode) {
+  const pairingCode = normalizePairingCode(rawPairingCode);
+  const sessionId = pairings.get(pairingCode);
+
+  if (!sessionId) {
+    sendJson(response, 404, { error: "pairing_not_found" });
+    return;
+  }
+
+  handleGetSession(response, sessionId);
 }
 
 function handleGetSession(response, sessionId) {
@@ -125,6 +147,20 @@ function handleGetSession(response, sessionId) {
   }
 
   sendJson(response, 200, session);
+}
+
+function createPairingCode() {
+  let code = "";
+
+  do {
+    code = Math.random().toString(36).slice(2, 8).toUpperCase();
+  } while (pairings.has(code));
+
+  return code;
+}
+
+function normalizePairingCode(code) {
+  return code.replace(/-/g, "").trim().toUpperCase();
 }
 
 async function handleAddSegment(request, response, sessionId) {

@@ -66,7 +66,23 @@ struct DictationView: View {
                 .buttonStyle(.bordered)
             }
 
+            HStack {
+                TextField("Pairing code", text: $viewModel.pairingCode)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .textFieldStyle(.roundedBorder)
+
+                Button("Join") {
+                    Task { await viewModel.pairSession() }
+                }
+                .buttonStyle(.bordered)
+            }
+
             if let session = viewModel.currentSession {
+                Text("Code \(session.pairingCode)")
+                    .font(.title3.monospaced().bold())
+                    .foregroundStyle(.teal)
+
                 Text(session.id)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
@@ -156,4 +172,3 @@ private extension View {
 #Preview {
     DictationView()
 }
-

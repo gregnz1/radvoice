@@ -44,6 +44,7 @@ http://192.168.1.25:8787
 
 - Select report template.
 - Create a backend report session.
+- Join a web-created session by short pairing code.
 - Send dictated fragments.
 - Send a mock CT abdomen/pelvis fragment stream.
 - Show live transcript fragments.
@@ -68,6 +69,7 @@ node .\src\server.js
 ```
 
 2. Run the iOS app in the simulator.
-3. Tap `New Session`.
-4. Tap `Mock iPhone`.
-5. Confirm the transcript and draft report populate.
+3. On the web app, tap `New Session` and note the large pairing code.
+4. In the iPhone app, enter the pairing code and tap `Join`.
+5. Send a fragment or tap `Mock iPhone`.
+6. Confirm the transcript and draft report populate in the shared session.

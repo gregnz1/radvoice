@@ -38,6 +38,7 @@ struct TranscriptSegment: Codable, Identifiable, Hashable {
 
 struct ReportSession: Codable, Identifiable {
     let id: String
+    let pairingCode: String
     let status: String
     let templateId: String
     let segments: [TranscriptSegment]
@@ -45,4 +46,3 @@ struct ReportSession: Codable, Identifiable {
     let createdAt: String
     let updatedAt: String
 }
-

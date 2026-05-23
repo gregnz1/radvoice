@@ -200,6 +200,21 @@ button:hover {
   white-space: nowrap;
 }
 
+.pairing-code {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  background: #ecfeff;
+  color: var(--accent-strong);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
 .sample,
 .session-block button {
   text-align: left;

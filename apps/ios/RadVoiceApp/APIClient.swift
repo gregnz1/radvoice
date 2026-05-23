@@ -32,6 +32,17 @@ final class APIClient {
         return try await post(path: "sessions", payload: payload)
     }
 
+    func pairSession(code: String) async throws -> ReportSession {
+        let normalizedCode = code
+            .replacingOccurrences(of: "-", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .uppercased()
+        let requestURL = baseURL.appending(path: "sessions/pair/\(normalizedCode)")
+        let (data, response) = try await URLSession.shared.data(from: requestURL)
+        try validate(response)
+        return try JSONDecoder().decode(ReportSession.self, from: data)
+    }
+
     func appendSegment(sessionId: String, text: String, source: String = "iphone") async throws -> ReportSession {
         let payload = [
             "source": source,
@@ -65,4 +76,3 @@ final class APIClient {
         }
     }
 }
-

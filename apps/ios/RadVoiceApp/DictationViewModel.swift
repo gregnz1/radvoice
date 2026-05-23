@@ -6,6 +6,7 @@ final class DictationViewModel: ObservableObject {
     @Published var templates: [ReportTemplate] = []
     @Published var selectedTemplateId = "ct-abdomen-pelvis"
     @Published var currentSession: ReportSession?
+    @Published var pairingCode = ""
     @Published var pendingFragment = ""
     @Published var isStreaming = false
     @Published var statusMessage = "Ready"
@@ -46,9 +47,29 @@ final class DictationViewModel: ObservableObject {
 
         do {
             currentSession = try await apiClient.createSession(templateId: selectedTemplateId)
+            pairingCode = currentSession?.pairingCode ?? ""
             statusMessage = "Session created"
         } catch {
             statusMessage = "Could not create session: \(error.localizedDescription)"
+        }
+    }
+
+    func pairSession() async {
+        let code = pairingCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !code.isEmpty else {
+            statusMessage = "Enter a pairing code"
+            return
+        }
+
+        configureAPI()
+
+        do {
+            currentSession = try await apiClient.pairSession(code: code)
+            selectedTemplateId = currentSession?.templateId ?? selectedTemplateId
+            pairingCode = currentSession?.pairingCode ?? code
+            statusMessage = "Paired with web session"
+        } catch {
+            statusMessage = "Pairing failed: \(error.localizedDescription)"
         }
     }
 
@@ -108,6 +129,7 @@ final class DictationViewModel: ObservableObject {
         do {
             if currentSession == nil {
                 currentSession = try await apiClient.createSession(templateId: selectedTemplateId)
+                pairingCode = currentSession?.pairingCode ?? ""
             }
 
             guard let sessionId = currentSession?.id else { return }
@@ -159,4 +181,3 @@ final class DictationViewModel: ObservableObject {
         }
     }
 }
-

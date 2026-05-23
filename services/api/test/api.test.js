@@ -36,6 +36,12 @@ try {
   const session = await sessionResponse.json();
   assert.equal(session.status, "active");
   assert.equal(session.templateId, "ct-head");
+  assert.equal(session.pairingCode.length, 6);
+
+  const pairedResponse = await fetch(`http://localhost:${port}/sessions/pair/${session.pairingCode}`);
+  assert.equal(pairedResponse.status, 200);
+  const pairedSession = await pairedResponse.json();
+  assert.equal(pairedSession.id, session.id);
 
   const segmentResponse = await fetch(`http://localhost:${port}/sessions/${session.id}/segments`, {
     method: "POST",

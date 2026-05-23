@@ -20,6 +20,8 @@
 
 ## Phase 2: iPhone Dictation MVP
 
+- [x] SwiftUI app scaffold.
+- [x] Session pairing by short code.
 - SwiftUI recording screen.
 - Speech-to-text integration.
 - Session pairing with web.
