@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RadVoice Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">RadVoice</p>
+          <h1>Radiology Dictation Workspace</h1>
+        </div>
+        <div class="status">
+          <span class="status-dot"></span>
+          Local prototype
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="Report workspace">
+        <aside class="controls" aria-label="Study and actions">
+          <label class="field">
+            <span>Study template</span>
+            <select id="templateSelect"></select>
+          </label>
+
+          <div class="button-row">
+            <button id="formatButton" type="button">Format</button>
+            <button id="clearButton" type="button" class="secondary">Clear</button>
+          </div>
+
+          <div class="sample-block">
+            <p>Samples</p>
+            <button class="sample" type="button" data-sample="ctap">CT abdomen</button>
+            <button class="sample" type="button" data-sample="cthead">CT head</button>
+            <button class="sample" type="button" data-sample="cxr">Chest x-ray</button>
+          </div>
+        </aside>
+
+        <section class="panel input-panel" aria-label="Raw dictation">
+          <div class="panel-head">
+            <h2>Raw Dictation</h2>
+            <span id="wordCount">0 words</span>
+          </div>
+          <textarea
+            id="dictationInput"
+            spellcheck="true"
+            placeholder="Speak or paste fragments here. Example: ct abdomen pelvis contrast liver fine gallbladder removed mild diverticular disease no free air impression nothing acute"
+          ></textarea>
+        </section>
+
+        <section class="panel output-panel" aria-label="Formatted report">
+          <div class="panel-head">
+            <h2>Draft Report</h2>
+            <button id="copyButton" type="button" class="secondary">Copy</button>
+          </div>
+          <pre id="reportOutput" class="report-output"></pre>
+        </section>
+      </section>
+
+      <section class="lower-grid">
+        <section class="panel" aria-label="Quality flags">
+          <div class="panel-head">
+            <h2>Quality Flags</h2>
+            <span id="flagCount">0</span>
+          </div>
+          <ul id="flagList" class="flag-list"></ul>
+        </section>
+
+        <section class="panel" aria-label="Structured data">
+          <div class="panel-head">
+            <h2>Formatter Contract</h2>
+          </div>
+          <pre id="jsonOutput" class="json-output"></pre>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
+

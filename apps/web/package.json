@@ -1,0 +1,9 @@
+{
+  "name": "radvoice-web-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node ./test/formatter.test.js"
+  }
+}
+

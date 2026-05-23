@@ -43,5 +43,19 @@ docs/
 
 ## Current Status
 
-This repository currently contains the planning and documentation spine for the project. Implementation can start from the roadmap in [docs/ROADMAP.md](docs/ROADMAP.md).
+This repository contains the planning spine and a first local web demo.
 
+## Run The Web Demo
+
+```powershell
+cd C:\Claude\RadVoice\apps\web
+python -m http.server 5173
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+The demo currently uses a local rule-based formatter so it can run without API keys. The formatter boundary is designed so a backend LLM endpoint can replace the local rules later.
