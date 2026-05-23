@@ -63,16 +63,28 @@
           ></textarea>
         </section>
 
-        <section class="panel output-panel" aria-label="Formatted report">
+        <section class="panel output-panel" aria-label="Generated draft report">
           <div class="panel-head">
-            <h2>Draft Report</h2>
-            <button id="copyButton" type="button" class="secondary">Copy</button>
+            <h2>Generated Draft</h2>
           </div>
           <pre id="reportOutput" class="report-output"></pre>
         </section>
       </section>
 
       <section class="lower-grid">
+        <section class="panel" aria-label="Editable final report">
+          <div class="panel-head">
+            <h2>Final Report</h2>
+            <button id="copyButton" type="button" class="secondary">Copy Final</button>
+          </div>
+          <textarea
+            id="finalReportInput"
+            class="final-report-input"
+            spellcheck="true"
+            placeholder="Generated draft will appear here for editing before copy."
+          ></textarea>
+        </section>
+
         <section class="panel" aria-label="Quality flags">
           <div class="panel-head">
             <h2>Quality Flags</h2>
@@ -90,6 +102,6 @@
       </section>
     </main>
 
-    <script type="module" src="./src/app.js?v=generic-report"></script>
+    <script type="module" src="./src/app.js?v=basic-demo"></script>
   </body>
 </html>

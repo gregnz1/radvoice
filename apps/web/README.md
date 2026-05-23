@@ -33,6 +33,9 @@ http://localhost:5173
 - Fragmented dictation input.
 - Visible no-patient-identifiers and draft-only positioning.
 - Formatter API integration with browser-local fallback.
+- Editable final report panel.
+- Copy button copies the edited final report.
+- Active session polling for iPhone/web sync.
 - Live session creation.
 - Short pairing code display for the iPhone client.
 - Mock iPhone transcript streaming into the backend.

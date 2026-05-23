@@ -17,17 +17,17 @@
 - [x] Add formatter API boundary.
 - [x] Display raw transcript and formatted draft side by side.
 - [x] Add copy button.
-- [ ] Replace local rule formatter with LLM provider.
+- [x] Add OpenAI formatter provider with local fallback.
 
 ## Phase 2: iPhone Dictation MVP
 
 - [x] SwiftUI app scaffold.
 - [x] Session pairing by short code.
-- SwiftUI recording screen.
-- Speech-to-text integration.
+- [x] SwiftUI recording screen.
+- [x] Speech-to-text integration scaffold.
 - Session pairing with web.
-- Pause/resume/stop controls.
-- Live transcript sync.
+- [x] Pause/resume/stop controls.
+- [x] Live transcript sync scaffold.
 
 ## Phase 3: Radiology Formatting
 

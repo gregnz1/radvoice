@@ -77,3 +77,5 @@ http://localhost:5173
 The demo currently uses a local rule-based formatter so it can run without API keys. The formatter boundary is designed so a backend LLM endpoint can replace the local rules later.
 
 If the backend API is running, the web app calls `http://localhost:8787/format`. If it is not running, the web app falls back to its browser-local formatter.
+
+To enable OpenAI formatting, set `LLM_ENABLED=true` and `OPENAI_API_KEY` in `.env` or the process environment. The backend falls back to the local rule formatter if OpenAI is disabled or unavailable.

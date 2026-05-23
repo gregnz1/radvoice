@@ -1,4 +1,6 @@
+import AVFoundation
 import Foundation
+import Speech
 
 @MainActor
 final class DictationViewModel: ObservableObject {
@@ -9,10 +11,18 @@ final class DictationViewModel: ObservableObject {
     @Published var pairingCode = ""
     @Published var pendingFragment = ""
     @Published var isStreaming = false
+    @Published var isRecording = false
+    @Published var isPaused = false
+    @Published var liveSpeechFragment = ""
     @Published var statusMessage = "Ready"
 
     private let apiClient = APIClient()
     private var streamTask: Task<Void, Never>?
+    private var hasJoinedPairedSession = false
+    private let audioEngine = AVAudioEngine()
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-AU"))
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
 
     var selectedTemplateName: String {
         templates.first(where: { $0.id == selectedTemplateId })?.name ?? "Template"
@@ -48,6 +58,7 @@ final class DictationViewModel: ObservableObject {
         do {
             currentSession = try await apiClient.createSession(templateId: selectedTemplateId)
             pairingCode = currentSession?.pairingCode ?? ""
+            hasJoinedPairedSession = false
             statusMessage = "Session created"
         } catch {
             statusMessage = "Could not create session: \(error.localizedDescription)"
@@ -67,6 +78,7 @@ final class DictationViewModel: ObservableObject {
             currentSession = try await apiClient.pairSession(code: code)
             selectedTemplateId = currentSession?.templateId ?? selectedTemplateId
             pairingCode = currentSession?.pairingCode ?? code
+            hasJoinedPairedSession = true
             statusMessage = "Paired with web session"
         } catch {
             statusMessage = "Pairing failed: \(error.localizedDescription)"
@@ -79,6 +91,43 @@ final class DictationViewModel: ObservableObject {
 
         await send(fragment: fragment, source: "iphone")
         pendingFragment = ""
+    }
+
+    func startRecording() async {
+        guard currentSession != nil, hasJoinedPairedSession else {
+            statusMessage = "Join a web session by pairing code before recording"
+            return
+        }
+
+        do {
+            try await requestSpeechPermissions()
+            try startSpeechRecognition()
+            isRecording = true
+            isPaused = false
+            statusMessage = "Recording"
+        } catch {
+            statusMessage = "Recording unavailable: \(error.localizedDescription)"
+        }
+    }
+
+    func pauseRecording() async {
+        guard isRecording else { return }
+
+        stopSpeechRecognition()
+        isRecording = false
+        isPaused = true
+        await sendLiveSpeechFragment(source: "iphone-speech")
+        statusMessage = "Paused"
+    }
+
+    func stopRecording() async {
+        guard isRecording || isPaused else { return }
+
+        stopSpeechRecognition()
+        isRecording = false
+        isPaused = false
+        await sendLiveSpeechFragment(source: "iphone-speech")
+        statusMessage = "Stopped"
     }
 
     func toggleMockStream() {
@@ -130,6 +179,7 @@ final class DictationViewModel: ObservableObject {
             if currentSession == nil {
                 currentSession = try await apiClient.createSession(templateId: selectedTemplateId)
                 pairingCode = currentSession?.pairingCode ?? ""
+                hasJoinedPairedSession = false
             }
 
             guard let sessionId = currentSession?.id else { return }
@@ -142,6 +192,88 @@ final class DictationViewModel: ObservableObject {
         } catch {
             statusMessage = "Send failed: \(error.localizedDescription)"
         }
+    }
+
+    private func sendLiveSpeechFragment(source: String) async {
+        let fragment = liveSpeechFragment.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !fragment.isEmpty else { return }
+
+        await send(fragment: fragment, source: source)
+        liveSpeechFragment = ""
+    }
+
+    private func requestSpeechPermissions() async throws {
+        let speechStatus = await withCheckedContinuation { continuation in
+            SFSpeechRecognizer.requestAuthorization { status in
+                continuation.resume(returning: status)
+            }
+        }
+
+        guard speechStatus == .authorized else {
+            throw SpeechError.permissionDenied
+        }
+
+        let microphoneGranted = await withCheckedContinuation { continuation in
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                continuation.resume(returning: granted)
+            }
+        }
+        guard microphoneGranted else {
+            throw SpeechError.permissionDenied
+        }
+    }
+
+    private func startSpeechRecognition() throws {
+        stopSpeechRecognition()
+
+        guard let speechRecognizer, speechRecognizer.isAvailable else {
+            throw SpeechError.recognizerUnavailable
+        }
+
+        let audioSession = AVAudioSession.sharedInstance()
+        try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = true
+        recognitionRequest = request
+
+        let inputNode = audioEngine.inputNode
+        let format = inputNode.outputFormat(forBus: 0)
+        inputNode.removeTap(onBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak request] buffer, _ in
+            request?.append(buffer)
+        }
+
+        audioEngine.prepare()
+        try audioEngine.start()
+
+        recognitionTask = speechRecognizer.recognitionTask(with: request) { [weak self] result, error in
+            Task { @MainActor in
+                if let result {
+                    self?.liveSpeechFragment = result.bestTranscription.formattedString
+                }
+
+                if error != nil {
+                    self?.stopSpeechRecognition()
+                    self?.isRecording = false
+                    self?.statusMessage = "Speech recognition stopped"
+                }
+            }
+        }
+    }
+
+    private func stopSpeechRecognition() {
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+
+        recognitionRequest?.endAudio()
+        recognitionTask?.cancel()
+        recognitionRequest = nil
+        recognitionTask = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
     private func configureAPI() {
@@ -178,6 +310,20 @@ final class DictationViewModel: ObservableObject {
                 "no free air no free fluid",
                 "impression nothing acute",
             ]
+        }
+    }
+}
+
+enum SpeechError: LocalizedError {
+    case permissionDenied
+    case recognizerUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .permissionDenied:
+            return "Microphone and speech recognition permissions are required."
+        case .recognizerUnavailable:
+            return "Speech recognizer is unavailable."
         }
     }
 }

@@ -9,6 +9,7 @@ struct DictationView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     connectionSection
                     sessionSection
+                    speechSection
                     fragmentSection
                     transcriptSection
                     reportSection
@@ -109,6 +110,39 @@ struct DictationView: View {
                 Task { await viewModel.sendPendingFragment() }
             }
             .buttonStyle(.borderedProminent)
+        }
+        .sectionStyle()
+    }
+
+    private var speechSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Speech")
+                .font(.headline)
+
+            HStack {
+                Button(viewModel.isPaused ? "Resume" : "Record") {
+                    Task { await viewModel.startRecording() }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(viewModel.isRecording)
+
+                Button("Pause") {
+                    Task { await viewModel.pauseRecording() }
+                }
+                .buttonStyle(.bordered)
+                .disabled(!viewModel.isRecording)
+
+                Button("Stop") {
+                    Task { await viewModel.stopRecording() }
+                }
+                .buttonStyle(.bordered)
+                .disabled(!viewModel.isRecording && !viewModel.isPaused)
+            }
+
+            Text(viewModel.liveSpeechFragment.isEmpty ? "No live speech yet." : viewModel.liveSpeechFragment)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.body)
+                .foregroundStyle(viewModel.liveSpeechFragment.isEmpty ? .secondary : .primary)
         }
         .sectionStyle()
     }

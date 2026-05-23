@@ -2,7 +2,7 @@
 
 This service exposes the formatter API boundary used by the web app.
 
-The current implementation uses the local rule-based formatter from the web demo. This keeps the endpoint runnable without API keys while preserving the shape needed for an LLM formatter.
+The formatter uses OpenAI when `LLM_ENABLED=true` and `OPENAI_API_KEY` is configured. If OpenAI is disabled or unavailable, it falls back to the local rule-based formatter.
 
 ## Run
 
@@ -16,6 +16,19 @@ The API listens on:
 ```text
 http://localhost:8787
 ```
+
+## LLM Configuration
+
+Create `C:\Claude\RadVoice\.env` or set environment variables:
+
+```text
+LLM_ENABLED=true
+OPENAI_API_KEY=your_api_key
+OPENAI_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4.1-mini
+```
+
+Leave `LLM_ENABLED=false` to use the local rule formatter.
 
 ## Endpoints
 

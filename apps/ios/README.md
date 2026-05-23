@@ -45,6 +45,7 @@ http://192.168.1.25:8787
 - Select report template.
 - Create a backend report session.
 - Join a web-created session by short pairing code.
+- Record, pause, and stop native speech recognition.
 - Send dictated fragments.
 - Send a mock CT abdomen/pelvis fragment stream.
 - Show live transcript fragments.
@@ -53,11 +54,10 @@ http://192.168.1.25:8787
 
 ## Next iPhone Work
 
-- Add Apple Speech framework transcription.
-- Add microphone permission flow.
-- Stream partial transcript segments while recording.
-- Add pause/resume/stop controls.
-- Add session pairing with the web app.
+- Compile and test the SwiftUI target in Xcode.
+- Tune speech chunking behavior for real reporting cadence.
+- Add QR pairing.
+- Add offline/network retry handling.
 
 ## Manual Test
 
@@ -71,5 +71,6 @@ node .\src\server.js
 2. Run the iOS app in the simulator.
 3. On the web app, tap `New Session` and note the large pairing code.
 4. In the iPhone app, enter the pairing code and tap `Join`.
-5. Send a fragment or tap `Mock iPhone`.
+5. Tap `Record`, speak a fragment, then tap `Stop`.
 6. Confirm the transcript and draft report populate in the shared session.
+7. Use manual fragment entry or `Mock iPhone` as fallback tests.

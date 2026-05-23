@@ -1,11 +1,12 @@
-import { formatDictation } from "./formatter.js?v=generic-report";
-import { samples, templates } from "./templates.js?v=generic-report";
+import { formatDictation } from "./formatter.js?v=basic-demo";
+import { samples, templates } from "./templates.js?v=basic-demo";
 
 const API_BASE = "http://localhost:8787";
 const templateSelect = document.querySelector("#templateSelect");
 const dictationInput = document.querySelector("#dictationInput");
 const reportOutput = document.querySelector("#reportOutput");
 const jsonOutput = document.querySelector("#jsonOutput");
+const finalReportInput = document.querySelector("#finalReportInput");
 const flagList = document.querySelector("#flagList");
 const flagCount = document.querySelector("#flagCount");
 const wordCount = document.querySelector("#wordCount");
@@ -19,6 +20,9 @@ const mockStreamButton = document.querySelector("#mockStreamButton");
 
 let activeSessionId = "";
 let streamTimer = 0;
+let pollTimer = 0;
+let finalReportDirty = false;
+let lastGeneratedReport = "";
 
 for (const template of templates) {
   const option = document.createElement("option");
@@ -47,16 +51,23 @@ clearButton.addEventListener("click", () => {
   activeSessionId = "";
   sessionId.textContent = "No session";
   pairingCode.textContent = "----";
+  finalReportInput.value = "";
+  finalReportDirty = false;
+  stopPolling();
   stopMockStream();
   render();
 });
 
 copyButton.addEventListener("click", async () => {
-  await navigator.clipboard.writeText(reportOutput.textContent);
+  await navigator.clipboard.writeText(finalReportInput.value);
   copyButton.textContent = "Copied";
   setTimeout(() => {
-    copyButton.textContent = "Copy";
+    copyButton.textContent = "Copy Final";
   }, 1200);
+});
+
+finalReportInput.addEventListener("input", () => {
+  finalReportDirty = finalReportInput.value !== lastGeneratedReport;
 });
 
 document.querySelectorAll(".sample").forEach((button) => {
@@ -140,8 +151,13 @@ async function createSession({ clearText }) {
   const session = await response.json();
   activeSessionId = session.id;
   showSessionIdentity(session);
+  startPolling();
 
-  if (clearText) dictationInput.value = "";
+  if (clearText) {
+    dictationInput.value = "";
+    finalReportDirty = false;
+    finalReportInput.value = "";
+  }
 
   showSession(session);
   return session;
@@ -170,6 +186,7 @@ async function appendSegment(text) {
 }
 
 function showSession(session) {
+  activeSessionId = session.id;
   showSessionIdentity(session);
   dictationInput.value = session.segments.map((segment) => segment.text).join(" ");
   updateWordCount();
@@ -180,6 +197,29 @@ function showSession(session) {
     segmentCount: session.segments.length,
     updatedAt: session.updatedAt,
   });
+}
+
+async function pollSession() {
+  if (!activeSessionId) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/sessions/${activeSessionId}`);
+    if (!response.ok) return;
+    const session = await response.json();
+    showSession(session);
+  } catch {
+    // Keep the current draft visible if polling temporarily fails.
+  }
+}
+
+function startPolling() {
+  stopPolling();
+  pollTimer = window.setInterval(pollSession, 1500);
+}
+
+function stopPolling() {
+  window.clearInterval(pollTimer);
+  pollTimer = 0;
 }
 
 function showSessionIdentity(session) {
@@ -220,6 +260,15 @@ function stopMockStream() {
 }
 
 function getMockFragments() {
+  if (templateSelect.value === "generic-report") {
+    return [
+      "indication pain",
+      "technique ultrasound performed",
+      "findings no focal abnormality",
+      "impression no acute abnormality",
+    ];
+  }
+
   if (templateSelect.value === "ct-head") {
     return [
       "ct head",
@@ -253,6 +302,10 @@ function getMockFragments() {
 
 function showResult(result) {
   reportOutput.textContent = result.report;
+  lastGeneratedReport = result.report;
+  if (!finalReportDirty) {
+    finalReportInput.value = result.report;
+  }
   jsonOutput.textContent = JSON.stringify(result, null, 2);
   renderFlags(result.flags);
 }

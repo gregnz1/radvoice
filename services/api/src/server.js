@@ -1,6 +1,10 @@
 import { createServer } from "node:http";
-import { formatDictation } from "../../../apps/web/src/formatter.js";
+import { existsSync, readFileSync } from "node:fs";
 import { templates } from "../../../apps/web/src/templates.js";
+import { formatReport } from "./formatterService.js";
+
+loadEnvFile(new URL("../../../.env", import.meta.url));
+loadEnvFile(new URL("../.env", import.meta.url));
 
 const port = Number.parseInt(process.env.API_PORT ?? "8787", 10);
 const sessions = new Map();
@@ -81,12 +85,8 @@ async function handleFormat(request, response) {
       return;
     }
 
-    const result = formatDictation(body.text, template);
-    sendJson(response, 200, {
-      ...result,
-      provider: "local-rule-engine",
-      generatedAt: new Date().toISOString(),
-    });
+    const result = await formatReport(body.text, template);
+    sendJson(response, 200, result);
   } catch (error) {
     sendJson(response, 400, {
       error: "bad_request",
@@ -116,7 +116,7 @@ async function handleCreateSession(request, response) {
     status: "active",
     templateId,
     segments: [],
-    draft: formatDictation("", template),
+    draft: await formatReport("", template),
     createdAt: now,
     updatedAt: now,
   };
@@ -191,7 +191,7 @@ async function handleAddSegment(request, response, sessionId) {
 
   const template = templates.find((item) => item.id === session.templateId) ?? templates[0];
   const fullText = session.segments.map((segment) => segment.text).join(" ");
-  session.draft = formatDictation(fullText, template);
+  session.draft = await formatReport(fullText, template);
   session.updatedAt = now;
 
   sendJson(response, 201, session);
@@ -217,4 +217,23 @@ async function readJson(request) {
 
   const raw = Buffer.concat(chunks).toString("utf8");
   return raw.length > 0 ? JSON.parse(raw) : {};
+}
+
+function loadEnvFile(fileUrl) {
+  if (!existsSync(fileUrl)) return;
+
+  const lines = readFileSync(fileUrl, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const separator = trimmed.indexOf("=");
+    if (separator === -1) continue;
+
+    const key = trimmed.slice(0, separator).trim();
+    const value = trimmed.slice(separator + 1).trim();
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
 }
