@@ -32,4 +32,15 @@ const flaggedResult = formatDictation("renal lesion mass", ctap);
 assert.ok(flaggedResult.flags.some((flag) => flag.category === "laterality"));
 assert.ok(flaggedResult.flags.some((flag) => flag.category === "measurement"));
 
+const negatedLesionResult = formatDictation("bones no aggressive osseous lesion", ctap);
+
+assert.equal(
+  negatedLesionResult.flags.some((flag) => flag.category === "laterality"),
+  false,
+);
+assert.equal(
+  negatedLesionResult.flags.some((flag) => flag.category === "measurement"),
+  false,
+);
+
 console.log("formatter tests passed");
