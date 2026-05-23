@@ -6,7 +6,14 @@ It runs as a static app and currently uses a rule-based formatter so it works wi
 
 ## Run
 
-From the repository root:
+Start the optional backend formatter API:
+
+```powershell
+cd C:\Claude\RadVoice\services\api
+node .\src\server.js
+```
+
+Then start the web app:
 
 ```powershell
 cd C:\Claude\RadVoice\apps\web
@@ -23,8 +30,7 @@ http://localhost:5173
 
 - Template selector.
 - Fragmented dictation input.
-- Rule-based structured draft generation.
+- Formatter API integration with browser-local fallback.
 - Quality flags for laterality, measurement, contradiction, and unsupported text.
 - Copy-ready report output.
 - JSON formatter contract preview.
-

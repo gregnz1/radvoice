@@ -51,6 +51,15 @@ This repository contains the planning spine and a first local web demo.
 
 ## Run The Web Demo
 
+Start the optional backend formatter API:
+
+```powershell
+cd C:\Claude\RadVoice\services\api
+node .\src\server.js
+```
+
+Then start the web app:
+
 ```powershell
 cd C:\Claude\RadVoice\apps\web
 python -m http.server 5173
@@ -63,3 +72,5 @@ http://localhost:5173
 ```
 
 The demo currently uses a local rule-based formatter so it can run without API keys. The formatter boundary is designed so a backend LLM endpoint can replace the local rules later.
+
+If the backend API is running, the web app calls `http://localhost:8787/format`. If it is not running, the web app falls back to its browser-local formatter.

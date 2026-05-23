@@ -10,12 +10,13 @@
 
 ## Phase 1: Local Prototype
 
-- Build web report workspace.
-- Add mock iPhone transcript stream.
-- Add template selector.
-- Add LLM formatter endpoint.
-- Display raw transcript and formatted draft side by side.
-- Add copy button.
+- [x] Build web report workspace.
+- [ ] Add mock iPhone transcript stream.
+- [x] Add template selector.
+- [x] Add formatter API boundary.
+- [x] Display raw transcript and formatted draft side by side.
+- [x] Add copy button.
+- [ ] Replace local rule formatter with LLM provider.
 
 ## Phase 2: iPhone Dictation MVP
 
@@ -55,4 +56,3 @@
 ## First Build Target
 
 The first useful demo should be a web app that accepts typed or pasted fragmented dictation, formats it into a radiology report, shows flags, and provides a copy-ready output panel.
-

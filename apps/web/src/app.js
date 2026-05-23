@@ -23,7 +23,7 @@ formatButton.addEventListener("click", render);
 templateSelect.addEventListener("change", render);
 dictationInput.addEventListener("input", () => {
   updateWordCount();
-  render();
+  renderLocalPreview();
 });
 
 clearButton.addEventListener("click", () => {
@@ -60,7 +60,50 @@ function updateWordCount() {
 
 function render() {
   updateWordCount();
+  void renderFromApi();
+}
+
+function renderLocalPreview() {
   const result = formatDictation(dictationInput.value, getTemplate());
+  showResult({
+    ...result,
+    provider: "browser-local-preview",
+  });
+}
+
+async function renderFromApi() {
+  try {
+    const response = await fetch("http://localhost:8787/format", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        templateId: getTemplate().id,
+        text: dictationInput.value,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`Formatter API returned ${response.status}`);
+
+    const result = await response.json();
+    showResult(result);
+  } catch {
+    const result = formatDictation(dictationInput.value, getTemplate());
+    showResult({
+      ...result,
+      provider: "browser-local-fallback",
+      flags: [
+        ...result.flags,
+        {
+          severity: "warning",
+          category: "api",
+          message: "Backend formatter unavailable. Showing browser-local fallback output.",
+        },
+      ],
+    });
+  }
+}
+
+function showResult(result) {
   reportOutput.textContent = result.report;
   jsonOutput.textContent = JSON.stringify(result, null, 2);
   renderFlags(result.flags);
@@ -88,4 +131,3 @@ function renderFlags(flags) {
 
 dictationInput.value = samples.ctap;
 render();
-
