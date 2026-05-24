@@ -43,6 +43,20 @@ Optional smoke test:
 15. Click `Consistency Warning`.
 16. Show the warning flag for a finding/impression mismatch.
 
+## iPhone Demo
+
+1. Start the demo with `.\scripts\start-demo.ps1`.
+2. Open `http://localhost:5173`.
+3. Click `New Session` and read out the six-character pairing code.
+4. Run the iPhone app in Xcode.
+5. Use `http://localhost:8787` in the simulator, or `http://<computer-lan-ip>:8787` on a physical iPhone.
+6. Enter the pairing code and tap `Join`.
+7. Send a manual fragment first, such as `lungs clear no pleural effusion impression no acute cardiopulmonary abnormality`.
+8. Confirm the web transcript and generated draft update automatically.
+9. Tap `Record`, grant microphone and speech permissions, speak a short fragment, then tap `Stop`.
+10. Confirm the speech fragment appears once in the web session.
+11. If speech permissions or simulator audio are awkward, use manual fragment entry or `Mock iPhone`.
+
 ## Notes
 
 - No patient identifiers should be entered during real use.

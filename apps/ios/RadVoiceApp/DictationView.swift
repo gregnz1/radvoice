@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct DictationView: View {
@@ -39,6 +40,10 @@ struct DictationView: View {
             Text(viewModel.statusMessage)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+
+            Text(viewModel.connectionSummary)
+                .font(.caption.bold())
+                .foregroundStyle(viewModel.canRecordSpeech ? .green : .secondary)
         }
         .sectionStyle()
     }
@@ -110,6 +115,7 @@ struct DictationView: View {
                 Task { await viewModel.sendPendingFragment() }
             }
             .buttonStyle(.borderedProminent)
+            .disabled(!viewModel.canSendFragment || viewModel.pendingFragment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .sectionStyle()
     }
@@ -124,7 +130,7 @@ struct DictationView: View {
                     Task { await viewModel.startRecording() }
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(viewModel.isRecording)
+                .disabled(viewModel.isRecording || !viewModel.canRecordSpeech)
 
                 Button("Pause") {
                     Task { await viewModel.pauseRecording() }
@@ -143,6 +149,12 @@ struct DictationView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .font(.body)
                 .foregroundStyle(viewModel.liveSpeechFragment.isEmpty ? .secondary : .primary)
+
+            if !viewModel.canRecordSpeech {
+                Text("Join a web session by pairing code before recording.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .sectionStyle()
     }

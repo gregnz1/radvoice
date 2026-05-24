@@ -40,6 +40,26 @@ final class DictationViewModel: ObservableObject {
         currentSession?.draft.flags ?? []
     }
 
+    var canSendFragment: Bool {
+        currentSession != nil
+    }
+
+    var canRecordSpeech: Bool {
+        currentSession != nil && hasJoinedPairedSession
+    }
+
+    var connectionSummary: String {
+        if hasJoinedPairedSession {
+            return "Paired with web"
+        }
+
+        if currentSession != nil {
+            return "Local session created"
+        }
+
+        return "Not paired"
+    }
+
     func load() async {
         configureAPI()
 
@@ -89,12 +109,18 @@ final class DictationViewModel: ObservableObject {
         let fragment = pendingFragment.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !fragment.isEmpty else { return }
 
-        await send(fragment: fragment, source: "iphone")
-        pendingFragment = ""
+        guard canSendFragment else {
+            statusMessage = "Create or join a session before sending"
+            return
+        }
+
+        if await send(fragment: fragment, source: "iphone") {
+            pendingFragment = ""
+        }
     }
 
     func startRecording() async {
-        guard currentSession != nil, hasJoinedPairedSession else {
+        guard canRecordSpeech else {
             statusMessage = "Join a web session by pairing code before recording"
             return
         }
@@ -116,8 +142,12 @@ final class DictationViewModel: ObservableObject {
         stopSpeechRecognition()
         isRecording = false
         isPaused = true
-        await sendLiveSpeechFragment(source: "iphone-speech")
-        statusMessage = "Paused"
+
+        if await sendLiveSpeechFragment(source: "iphone-speech") {
+            statusMessage = "Paused and sent fragment"
+        } else if liveSpeechFragment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            statusMessage = "Paused"
+        }
     }
 
     func stopRecording() async {
@@ -126,8 +156,12 @@ final class DictationViewModel: ObservableObject {
         stopSpeechRecognition()
         isRecording = false
         isPaused = false
-        await sendLiveSpeechFragment(source: "iphone-speech")
-        statusMessage = "Stopped"
+
+        if await sendLiveSpeechFragment(source: "iphone-speech") {
+            statusMessage = "Stopped and sent fragment"
+        } else if liveSpeechFragment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            statusMessage = "Stopped"
+        }
     }
 
     func toggleMockStream() {
@@ -155,7 +189,8 @@ final class DictationViewModel: ObservableObject {
 
             for fragment in self.mockFragments() {
                 if Task.isCancelled { break }
-                await self.send(fragment: fragment, source: "iphone-mock")
+                let sent = await self.send(fragment: fragment, source: "iphone-mock")
+                if !sent { break }
 
                 do {
                     try await Task.sleep(for: .milliseconds(850))
@@ -172,34 +207,38 @@ final class DictationViewModel: ObservableObject {
         }
     }
 
-    private func send(fragment: String, source: String) async {
+    private func send(fragment: String, source: String) async -> Bool {
         configureAPI()
 
         do {
-            if currentSession == nil {
-                currentSession = try await apiClient.createSession(templateId: selectedTemplateId)
-                pairingCode = currentSession?.pairingCode ?? ""
-                hasJoinedPairedSession = false
+            guard let sessionId = currentSession?.id else {
+                statusMessage = "Create or join a session before sending"
+                return false
             }
 
-            guard let sessionId = currentSession?.id else { return }
             currentSession = try await apiClient.appendSegment(
                 sessionId: sessionId,
                 text: fragment,
                 source: source
             )
             statusMessage = "Sent fragment"
+            return true
         } catch {
             statusMessage = "Send failed: \(error.localizedDescription)"
+            return false
         }
     }
 
-    private func sendLiveSpeechFragment(source: String) async {
+    private func sendLiveSpeechFragment(source: String) async -> Bool {
         let fragment = liveSpeechFragment.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !fragment.isEmpty else { return }
+        guard !fragment.isEmpty else { return false }
 
-        await send(fragment: fragment, source: source)
-        liveSpeechFragment = ""
+        if await send(fragment: fragment, source: source) {
+            liveSpeechFragment = ""
+            return true
+        }
+
+        return false
     }
 
     private func requestSpeechPermissions() async throws {
