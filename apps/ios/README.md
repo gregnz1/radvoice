@@ -91,10 +91,12 @@ Use the IPv4 address for the Wi-Fi or Ethernet adapter that is on the same netwo
 
 1. Start the demo with `.\scripts\start-demo.ps1`.
 2. Make sure the iPhone and computer are on the same network.
-3. Replace the API URL in the app with `http://<computer-lan-ip>:8787`.
-4. Create a web session, enter its pairing code on the iPhone, and tap `Join`.
-5. Send a manual fragment first to confirm networking.
-6. Record a short speech fragment, stop, and confirm the web app updates.
+3. Set `API_HOST=0.0.0.0` in `C:\Claude\RadVoice\.env`, then restart the demo.
+4. Replace the API URL in the app with `http://<computer-lan-ip>:8787`.
+5. Create a web session, enter its pairing code on the iPhone, and tap `Join`.
+6. Send a manual fragment first to confirm networking.
+7. Record a short speech fragment, stop, and confirm the web app updates.
+8. Stop the demo server when finished.
 
 ## Troubleshooting
 

@@ -38,6 +38,10 @@ RadVoice should not accept patient identifiers or store patient information.
 - Minimize patient identifiers in the app.
 - In the intended workflow, patient identifiers should not be entered at all.
 - Prefer accession/session labels over patient names in MVP.
+- Bind the local demo API to this computer by default.
+- Use LAN API exposure only for trusted physical iPhone demos.
+- Expire in-memory demo sessions automatically.
+- Do not log raw dictation text or generated reports.
 - Encrypt data in transit.
 - Encrypt persisted report sessions.
 - Add configurable retention and deletion.

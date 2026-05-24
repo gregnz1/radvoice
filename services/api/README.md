@@ -14,8 +14,28 @@ node .\src\server.js
 The API listens on:
 
 ```text
-http://localhost:8787
+http://127.0.0.1:8787
 ```
+
+By default the API is local-only. For a physical iPhone demo on a trusted LAN, set `API_HOST=0.0.0.0`, update the iPhone API URL to `http://<computer-lan-ip>:8787`, and stop the server after the demo.
+
+## Local Security Configuration
+
+Create `C:\Claude\RadVoice\.env` or set environment variables:
+
+```text
+API_PORT=8787
+API_HOST=127.0.0.1
+CORS_ORIGINS=http://localhost:5173
+SESSION_TTL_MS=3600000
+LOG_LEVEL=minimal
+```
+
+- `API_HOST=127.0.0.1` keeps the API on this computer only.
+- `API_HOST=0.0.0.0` exposes the API to the local network for physical iPhone testing.
+- `CORS_ORIGINS` is a comma-separated allowlist.
+- `SESSION_TTL_MS` controls in-memory session expiry.
+- `LOG_LEVEL=silent` suppresses startup logs. Raw dictation and reports are not logged.
 
 ## LLM Configuration
 
@@ -34,7 +54,7 @@ Leave `LLM_ENABLED=false` to use the local rule formatter.
 
 ## `GET /health`
 
-Returns service health, non-secret LLM configuration state, and active in-memory session count.
+Returns service health, non-secret LLM/network configuration state, active in-memory session count, and session TTL.
 
 ## `GET /templates`
 
@@ -84,7 +104,7 @@ Request:
 }
 ```
 
-The in-memory store is for local prototype work only. Persistent sync will move to the database layer.
+The in-memory store is for local prototype work only. Sessions expire automatically and persistent sync will move to the database layer.
 
 Response:
 

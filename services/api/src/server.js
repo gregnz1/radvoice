@@ -8,11 +8,16 @@ loadEnvFile(new URL("../../../.env", import.meta.url));
 loadEnvFile(new URL("../.env", import.meta.url));
 
 const port = Number.parseInt(process.env.API_PORT ?? "8787", 10);
+const host = process.env.API_HOST || "127.0.0.1";
+const allowedOrigins = parseCsv(process.env.CORS_ORIGINS || "http://localhost:5173");
+const sessionTtlMs = Number.parseInt(process.env.SESSION_TTL_MS || "3600000", 10);
+const logLevel = process.env.LOG_LEVEL || "minimal";
 const sessions = new Map();
 const pairings = new Map();
 
 const server = createServer(async (request, response) => {
-  setCorsHeaders(response);
+  cleanupExpiredSessions();
+  setCorsHeaders(request, response);
 
   if (request.method === "OPTIONS") {
     response.writeHead(204);
@@ -31,8 +36,18 @@ const server = createServer(async (request, response) => {
         configured: typeof process.env.OPENAI_API_KEY === "string" && process.env.OPENAI_API_KEY.trim().length > 0,
         model: process.env.LLM_MODEL || "gpt-4.1-mini",
       },
+      network: {
+        host,
+        port,
+        allowedOrigins: allowedOrigins.length,
+      },
+      privacy: {
+        logLevel,
+        rawTextLogging: false,
+      },
       sessions: {
         active: sessions.size,
+        ttlMs: sessionTtlMs,
       },
     });
     return;
@@ -74,8 +89,14 @@ const server = createServer(async (request, response) => {
   sendJson(response, 404, { error: "not_found" });
 });
 
-server.listen(port, () => {
-  console.log(`RadVoice API listening on http://localhost:${port}`);
+const cleanupTimer = setInterval(cleanupExpiredSessions, Math.min(sessionTtlMs, 5 * 60 * 1000));
+cleanupTimer.unref?.();
+
+server.listen(port, host, () => {
+  logStartup(`RadVoice API listening on http://${host}:${port}`);
+  if (host === "0.0.0.0") {
+    logStartup("WARNING: LAN API exposure is enabled. Use only on a trusted network and stop the server after the demo.");
+  }
 });
 
 async function handleFormat(request, response) {
@@ -135,6 +156,11 @@ async function handleCreateSession(request, response) {
     createdAt: now,
     updatedAt: now,
   };
+  Object.defineProperty(session, "expiresAt", {
+    value: new Date(Date.now() + sessionTtlMs).toISOString(),
+    enumerable: false,
+    writable: true,
+  });
 
   sessions.set(session.id, session);
   pairings.set(pairingCode, session.id);
@@ -145,7 +171,8 @@ function handlePairSession(response, rawPairingCode) {
   const pairingCode = normalizePairingCode(rawPairingCode);
   const sessionId = pairings.get(pairingCode);
 
-  if (!sessionId) {
+  if (!sessionId || !getActiveSession(sessionId)) {
+    pairings.delete(pairingCode);
     sendJson(response, 404, { error: "pairing_not_found" });
     return;
   }
@@ -154,7 +181,7 @@ function handlePairSession(response, rawPairingCode) {
 }
 
 function handleGetSession(response, sessionId) {
-  const session = sessions.get(sessionId);
+  const session = getActiveSession(sessionId);
 
   if (!session) {
     sendJson(response, 404, { error: "session_not_found" });
@@ -179,7 +206,7 @@ function normalizePairingCode(code) {
 }
 
 async function handleAddSegment(request, response, sessionId) {
-  const session = sessions.get(sessionId);
+  const session = getActiveSession(sessionId);
 
   if (!session) {
     sendJson(response, 404, { error: "session_not_found" });
@@ -214,10 +241,44 @@ async function handleAddSegment(request, response, sessionId) {
   sendJson(response, 201, session);
 }
 
-function setCorsHeaders(response) {
-  response.setHeader("Access-Control-Allow-Origin", "*");
+function setCorsHeaders(request, response) {
+  const origin = request.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    response.setHeader("Access-Control-Allow-Origin", origin);
+    response.setHeader("Vary", "Origin");
+  }
+
   response.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   response.setHeader("Access-Control-Allow-Headers", "content-type");
+}
+
+function getActiveSession(sessionId) {
+  const session = sessions.get(sessionId);
+  if (!session) return null;
+
+  if (isExpired(session)) {
+    deleteSession(session);
+    return null;
+  }
+
+  return session;
+}
+
+function cleanupExpiredSessions() {
+  for (const session of sessions.values()) {
+    if (isExpired(session)) {
+      deleteSession(session);
+    }
+  }
+}
+
+function isExpired(session) {
+  return typeof session.expiresAt === "string" && Date.parse(session.expiresAt) <= Date.now();
+}
+
+function deleteSession(session) {
+  sessions.delete(session.id);
+  pairings.delete(session.pairingCode);
 }
 
 function sendJson(response, status, payload) {
@@ -252,5 +313,18 @@ function loadEnvFile(fileUrl) {
     if (!process.env[key]) {
       process.env[key] = value;
     }
+  }
+}
+
+function parseCsv(value) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function logStartup(message) {
+  if (logLevel !== "silent") {
+    console.log(message);
   }
 }

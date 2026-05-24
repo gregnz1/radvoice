@@ -57,6 +57,8 @@ Optional smoke test:
 10. Confirm the speech fragment appears once in the web session.
 11. If speech permissions or simulator audio are awkward, use manual fragment entry or `Mock iPhone`.
 
+For a physical iPhone, set `API_HOST=0.0.0.0` in `.env` before starting the demo. Use this only on a trusted network and stop the server after the walkthrough.
+
 ## Notes
 
 - No patient identifiers should be entered during real use.
