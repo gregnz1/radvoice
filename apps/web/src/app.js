@@ -12,6 +12,10 @@ const flagCount = document.querySelector("#flagCount");
 const wordCount = document.querySelector("#wordCount");
 const sessionId = document.querySelector("#sessionId");
 const pairingCode = document.querySelector("#pairingCode");
+const apiStatus = document.querySelector("#apiStatus");
+const providerStatus = document.querySelector("#providerStatus");
+const pollStatus = document.querySelector("#pollStatus");
+const lastSyncStatus = document.querySelector("#lastSyncStatus");
 const formatButton = document.querySelector("#formatButton");
 const clearButton = document.querySelector("#clearButton");
 const copyButton = document.querySelector("#copyButton");
@@ -81,6 +85,12 @@ document.querySelectorAll(".sample").forEach((button) => {
   });
 });
 
+document.querySelectorAll(".scenario").forEach((button) => {
+  button.addEventListener("click", () => {
+    applyScenario(button.dataset.scenario);
+  });
+});
+
 function getTemplate() {
   return templates.find((template) => template.id === templateSelect.value) ?? templates[0];
 }
@@ -118,6 +128,7 @@ async function renderFromApi() {
 
     const result = await response.json();
     showResult(result);
+    markApiConnected();
   } catch {
     const result = formatDictation(dictationInput.value, getTemplate());
     showResult({
@@ -132,6 +143,22 @@ async function renderFromApi() {
         },
       ],
     });
+    apiStatus.textContent = "Disconnected";
+  }
+}
+
+async function refreshHealth() {
+  try {
+    const response = await fetch(`${API_BASE}/health`);
+    if (!response.ok) throw new Error("health failed");
+    const health = await response.json();
+    apiStatus.textContent = "Connected";
+    const enabled = health.llm?.enabled ? "on" : "off";
+    const configured = health.llm?.configured ? "configured" : "no key";
+    providerStatus.textContent = `LLM ${enabled}, ${configured}`;
+  } catch {
+    apiStatus.textContent = "Disconnected";
+    providerStatus.textContent = "Browser fallback";
   }
 }
 
@@ -215,11 +242,13 @@ async function pollSession() {
 function startPolling() {
   stopPolling();
   pollTimer = window.setInterval(pollSession, 1500);
+  pollStatus.textContent = "Active";
 }
 
 function stopPolling() {
   window.clearInterval(pollTimer);
   pollTimer = 0;
+  pollStatus.textContent = "Idle";
 }
 
 function showSessionIdentity(session) {
@@ -302,6 +331,8 @@ function getMockFragments() {
 
 function showResult(result) {
   reportOutput.textContent = result.report;
+  providerStatus.textContent = result.provider ?? "Unknown";
+  lastSyncStatus.textContent = new Date().toLocaleTimeString();
   lastGeneratedReport = result.report;
   if (!finalReportDirty) {
     finalReportInput.value = result.report;
@@ -330,6 +361,34 @@ function renderFlags(flags) {
   }
 }
 
+function markApiConnected() {
+  apiStatus.textContent = "Connected";
+}
+
+function applyScenario(scenario) {
+  finalReportDirty = false;
+
+  if (scenario === "privacy") {
+    templateSelect.value = "generic-report";
+    dictationInput.value = "patient name jane smith dob 01/02/1950 indication cough technique chest xray findings lungs clear impression no acute disease";
+    render();
+    return;
+  }
+
+  if (scenario === "ctap") {
+    templateSelect.value = "ct-abdomen-pelvis";
+    dictationInput.value = samples.ctap;
+    render();
+    return;
+  }
+
+  templateSelect.value = "generic-report";
+  dictationInput.value = samples.generic;
+  render();
+}
+
 templateSelect.value = "generic-report";
 dictationInput.value = samples.generic;
+void refreshHealth();
+window.setInterval(refreshHealth, 5000);
 render();

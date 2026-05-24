@@ -22,6 +22,25 @@
         </div>
       </header>
 
+      <section class="status-strip" aria-label="Demo health status">
+        <div class="status-pill">
+          <span class="status-label">API</span>
+          <strong id="apiStatus">Checking</strong>
+        </div>
+        <div class="status-pill">
+          <span class="status-label">Formatter</span>
+          <strong id="providerStatus">Unknown</strong>
+        </div>
+        <div class="status-pill">
+          <span class="status-label">Polling</span>
+          <strong id="pollStatus">Idle</strong>
+        </div>
+        <div class="status-pill">
+          <span class="status-label">Last sync</span>
+          <strong id="lastSyncStatus">Never</strong>
+        </div>
+      </section>
+
       <section class="workspace" aria-label="Report workspace">
         <aside class="controls" aria-label="Study and actions">
           <label class="field">
@@ -48,6 +67,13 @@
             <button class="sample" type="button" data-sample="cthead">CT head</button>
             <button class="sample" type="button" data-sample="cxr">Chest x-ray</button>
             <button class="sample" type="button" data-sample="generic">Generic</button>
+          </div>
+
+          <div class="scenario-block">
+            <p>Demo scenarios</p>
+            <button class="scenario" type="button" data-scenario="generic">Generic Report</button>
+            <button class="scenario" type="button" data-scenario="ctap">CT Abd/Pelvis</button>
+            <button class="scenario" type="button" data-scenario="privacy">Privacy Guardrail</button>
           </div>
         </aside>
 

@@ -36,6 +36,8 @@ http://localhost:5173
 - Editable final report panel.
 - Copy button copies the edited final report.
 - Active session polling for iPhone/web sync.
+- Demo health status strip.
+- Guided demo scenarios for generic report, CT abdomen/pelvis, and privacy guardrail.
 - Live session creation.
 - Short pairing code display for the iPhone client.
 - Mock iPhone transcript streaming into the backend.

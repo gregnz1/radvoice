@@ -34,7 +34,7 @@ Leave `LLM_ENABLED=false` to use the local rule formatter.
 
 ## `GET /health`
 
-Returns service health.
+Returns service health, non-secret LLM configuration state, and active in-memory session count.
 
 ## `GET /templates`
 

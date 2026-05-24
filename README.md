@@ -54,7 +54,26 @@ This repository contains the planning spine and a first local web demo.
 
 ## Run The Web Demo
 
-Start the optional backend formatter API:
+Fast path:
+
+```powershell
+cd C:\Claude\RadVoice
+.\scripts\start-demo.ps1
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+Optional smoke test:
+
+```powershell
+& 'C:\Users\PC\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\smoke-demo.mjs
+```
+
+Manual path:
 
 ```powershell
 cd C:\Claude\RadVoice\services\api
@@ -79,3 +98,5 @@ The demo currently uses a local rule-based formatter so it can run without API k
 If the backend API is running, the web app calls `http://localhost:8787/format`. If it is not running, the web app falls back to its browser-local formatter.
 
 To enable OpenAI formatting, set `LLM_ENABLED=true` and `OPENAI_API_KEY` in `.env` or the process environment. The backend falls back to the local rule formatter if OpenAI is disabled or unavailable.
+
+For a guided walkthrough, use [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).

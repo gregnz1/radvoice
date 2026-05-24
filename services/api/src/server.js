@@ -20,7 +20,20 @@ const server = createServer(async (request, response) => {
   }
 
   if (request.method === "GET" && request.url === "/health") {
-    sendJson(response, 200, { ok: true, service: "radvoice-api" });
+    sendJson(response, 200, {
+      ok: true,
+      service: "radvoice-api",
+      version: "demo",
+      llm: {
+        enabled: process.env.LLM_ENABLED === "true",
+        provider: "openai",
+        configured: typeof process.env.OPENAI_API_KEY === "string" && process.env.OPENAI_API_KEY.trim().length > 0,
+        model: process.env.LLM_MODEL || "gpt-4.1-mini",
+      },
+      sessions: {
+        active: sessions.size,
+      },
+    });
     return;
   }
 
