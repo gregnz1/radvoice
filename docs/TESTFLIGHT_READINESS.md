@@ -4,10 +4,10 @@ This checklist prepares RadVoice for private TestFlight evaluation. It is not pu
 
 ## Product Positioning
 
-- [ ] App name, subtitle, and screenshots describe dictation, transcription, formatting, and draft report review only.
-- [ ] App metadata avoids diagnostic, image interpretation, triage, clinical decision support, or autonomous reporting claims.
-- [ ] Reviewer notes state that RadVoice is draft text only and clinician review is required.
-- [ ] Intended user is limited to qualified radiologists or authorized clinical users.
+- [x] App name, subtitle, and screenshot checklist describe dictation, transcription, formatting, and draft report review only.
+- [x] App metadata draft avoids diagnostic, image interpretation, triage, clinical decision support, or autonomous reporting claims.
+- [x] Reviewer notes draft states that RadVoice is draft text only and clinician review is required.
+- [x] Intended user is limited to qualified radiologists or authorized clinical users.
 - [ ] App text states not to enter patient identifiers.
 
 ## Apple Developer Setup
@@ -24,8 +24,8 @@ This checklist prepares RadVoice for private TestFlight evaluation. It is not pu
 
 - [ ] Privacy policy URL exists.
 - [ ] Support URL exists.
-- [ ] Privacy policy explains what is collected, what is not collected, processing location, retention, deletion, and support contact.
-- [ ] App Privacy answers match actual behavior.
+- [x] Privacy policy draft explains what is collected, what is not collected, processing location, retention, deletion, and support contact.
+- [x] App Privacy draft notes match current intended behavior.
 - [ ] No patient identifiers are intentionally collected.
 - [ ] No raw dictation or generated reports are logged.
 - [ ] Any future persistence has retention and deletion controls before release.
@@ -71,6 +71,12 @@ xcodebuild -project RadVoice.xcodeproj -scheme RadVoice -destination 'platform=i
 ```
 
 This command has not been run in the Windows workspace.
+
+## TestFlight Draft Materials
+
+- Privacy policy draft: [PRIVACY_POLICY_DRAFT.md](PRIVACY_POLICY_DRAFT.md)
+- Support page draft: [SUPPORT_PAGE_DRAFT.md](SUPPORT_PAGE_DRAFT.md)
+- App metadata draft: [APP_STORE_METADATA_DRAFT.md](APP_STORE_METADATA_DRAFT.md)
 
 ## Safety Review
 
