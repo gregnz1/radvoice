@@ -1,6 +1,10 @@
 # No Patient Information Policy
 
-RadVoice is designed as a no-PHI prototype and should not accept patient-identifying information.
+RadVoice is designed as a no-PHI private evaluation prototype for draft report text and should not accept patient-identifying information.
+
+The intended user is a qualified radiologist or authorized clinical user creating their own draft report text.
+
+RadVoice does not interpret medical images, make diagnoses, provide diagnostic recommendations, or submit reports directly to a RIS.
 
 ## Do Not Enter
 
@@ -21,10 +25,14 @@ RadVoice is designed as a no-PHI prototype and should not accept patient-identif
 - The web app warns immediately when likely identifiers are typed.
 - The web app redacts only the offending identifier text after a short delay.
 - The backend redacts likely identifiers before formatting or storing session segments.
+- Copy is blocked while critical privacy flags are present.
+- Final report copy requires explicit approval.
+- The API binds to the local computer by default.
+- In-memory sessions expire automatically.
 - Logs should not contain dictated text.
 - Sessions should be treated as temporary.
 - Persistent storage must remain disabled until retention and deletion controls are implemented.
 
-## Future Strict Mode
+## Clinical Deployment Boundary
 
-Strict mode should block sync/copy when obvious identifiers are detected.
+This prototype is not ready for clinical deployment. Any workflow that stores, processes, transmits, or intentionally accepts patient information requires formal privacy, security, legal, and regulatory review before use.

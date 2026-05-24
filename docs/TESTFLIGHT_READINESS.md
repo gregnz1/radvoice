@@ -1,0 +1,71 @@
+# TestFlight Readiness Checklist
+
+This checklist prepares RadVoice for private TestFlight evaluation. It is not public App Store submission guidance and is not legal or regulatory advice.
+
+## Product Positioning
+
+- [ ] App name, subtitle, and screenshots describe dictation, transcription, formatting, and draft report review only.
+- [ ] App metadata avoids diagnostic, image interpretation, triage, clinical decision support, or autonomous reporting claims.
+- [ ] Reviewer notes state that RadVoice is draft text only and clinician review is required.
+- [ ] Intended user is limited to qualified radiologists or authorized clinical users.
+- [ ] App text states not to enter patient identifiers.
+
+## Apple Developer Setup
+
+- [ ] Apple Developer Program account is active.
+- [ ] Bundle ID is created.
+- [ ] Signing team is configured in Xcode.
+- [ ] App icon and launch screen are present.
+- [ ] Build number and version number are set.
+- [ ] Microphone and speech recognition permission strings are present.
+- [ ] Local HTTP exception is removed or narrowed before external TestFlight unless using a controlled development build.
+
+## Privacy And Support
+
+- [ ] Privacy policy URL exists.
+- [ ] Support URL exists.
+- [ ] Privacy policy explains what is collected, what is not collected, processing location, retention, deletion, and support contact.
+- [ ] App Privacy answers match actual behavior.
+- [ ] No patient identifiers are intentionally collected.
+- [ ] No raw dictation or generated reports are logged.
+- [ ] Any future persistence has retention and deletion controls before release.
+
+## Demo Backend
+
+- [ ] Backend deployment target is chosen for TestFlight.
+- [ ] API uses HTTPS for any network outside local development.
+- [ ] Authentication or invitation gating is defined before external testers use it.
+- [ ] CORS is allowlisted.
+- [ ] Session expiry is enabled.
+- [ ] OpenAI or private model data handling is reviewed.
+- [ ] No secrets are stored in the repository.
+
+## iPhone Build Verification
+
+- [ ] Xcode project builds on a Mac.
+- [ ] App loads templates from the configured API.
+- [ ] Pairing code joins a web session.
+- [ ] Manual fragment sends successfully.
+- [ ] Mock stream sends repeated fragments.
+- [ ] Apple Speech permission flow works.
+- [ ] Pause/resume/stop does not duplicate fragments.
+- [ ] Failed API sends keep unsent text visible.
+
+## Safety Review
+
+- [ ] Draft-only language is visible.
+- [ ] Final copy requires explicit approval.
+- [ ] Privacy flags block copy.
+- [ ] Targeted redaction works.
+- [ ] Raw transcript remains visible.
+- [ ] Revision history is visible.
+- [ ] Safety flags are warnings, not clinical recommendations.
+- [ ] Formal legal/regulatory review is scheduled before clinical deployment or commercial supply.
+
+## TestFlight Submission Notes
+
+Suggested reviewer note:
+
+```text
+RadVoice is a private evaluation build for clinician-controlled radiology dictation and report-formatting workflow testing. It does not interpret images, make diagnoses, recommend findings, autonomously finalize reports, collect patient identifiers, or submit to a RIS. The reviewer can use the demo backend instructions in the repository to pair the iPhone app with the web review interface.
+```

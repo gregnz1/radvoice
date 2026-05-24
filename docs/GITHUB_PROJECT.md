@@ -91,6 +91,15 @@ Issues:
 - Add report revision history.
 - Add final approval state.
 
+## Remaining Private Review Issues
+
+- Xcode compile and physical device verification.
+- TestFlight privacy policy and support URL.
+- Authentication and session access control.
+- HTTPS deployment and encrypted transport.
+- Optional private model endpoint.
+- Formal privacy, security, legal, and regulatory review.
+
 ## First GitHub Project Board Columns
 
 - Backlog
