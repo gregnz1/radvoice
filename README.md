@@ -105,7 +105,7 @@ docs/
 - No direct RIS integration.
 - No production TLS/deployment configuration.
 - No App Store/TestFlight bundle metadata yet.
-- Xcode project creation/build verification is still manual.
+- Xcode project skeleton is committed, but Mac/Xcode build verification is still pending.
 - Formal privacy, security, legal, and regulatory review is still required before clinical deployment.
 
 ## Reviewer Links

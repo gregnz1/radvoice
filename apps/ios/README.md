@@ -2,31 +2,50 @@
 
 This folder contains the SwiftUI source for the iPhone dictation client.
 
-The first version is designed to be added to a fresh Xcode iOS App project named `RadVoice`. It talks to the local RadVoice API and can send simulated dictated fragments into a live report session.
+The repo includes a lightweight Xcode project at `RadVoice.xcodeproj`. It talks to the local RadVoice API and can send manual, mock, and speech-recognition fragments into a live report session.
 
-## Create The Xcode Project
+## Open The Xcode Project
 
-1. Open Xcode.
-2. Choose `File > New > Project`.
-3. Choose `iOS > App`.
-4. Product Name: `RadVoice`.
-5. Interface: `SwiftUI`.
-6. Language: `Swift`.
-7. Save it under:
+1. Open Xcode on a Mac.
+2. Choose `File > Open`.
+3. Open:
 
 ```text
-C:\Claude\RadVoice\apps\ios
+apps/ios/RadVoice.xcodeproj
 ```
 
-8. Replace the generated Swift files with the files in `RadVoiceApp/`.
-9. In the Xcode target, make sure all files in `RadVoiceApp/` are included in target membership.
-10. Open the app target `Info.plist` and add the keys from `Info-development.plist.snippet`.
+4. Select the `RadVoice` scheme.
+5. Choose an iPhone simulator and run.
 
-## Development Networking
+The project uses:
 
-The local prototype API uses plain HTTP. Add the contents of `Info-development.plist.snippet` to the app target's `Info.plist` for development builds.
+- Product name: `RadVoice`
+- Bundle identifier: `com.radvoice.demo`
+- Version: `0.1.0`
+- Build: `1`
+- iOS deployment target: `17.0`
+- Signing team: blank, to be selected locally in Xcode if needed
+
+## Permissions And Development Networking
+
+The app target uses `RadVoiceApp/Info.plist`, which includes microphone, speech recognition, and local HTTP development permissions. `Info-development.plist.snippet` is retained as a reference.
 
 Do not ship a production app with broad arbitrary HTTP loads enabled.
+
+## Command Line Build Check
+
+On a Mac with Xcode installed:
+
+```bash
+cd apps/ios
+xcodebuild -project RadVoice.xcodeproj -scheme RadVoice -destination 'platform=iOS Simulator,name=iPhone 15' build
+```
+
+If that simulator name is unavailable, list installed simulators with:
+
+```bash
+xcrun simctl list devices available
+```
 
 ## Local API URL
 
@@ -66,6 +85,7 @@ Use the IPv4 address for the Wi-Fi or Ethernet adapter that is on the same netwo
 
 ## Next iPhone Work
 
+- Compile and verify this committed Xcode project on a Mac.
 - Tune speech chunking behavior for real reporting cadence.
 - Add QR pairing.
 - Add offline/network retry handling.

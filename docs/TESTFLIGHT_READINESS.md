@@ -42,6 +42,7 @@ This checklist prepares RadVoice for private TestFlight evaluation. It is not pu
 
 ## iPhone Build Verification
 
+- [x] Xcode project skeleton is committed.
 - [ ] Xcode project builds on a Mac.
 - [ ] App loads templates from the configured API.
 - [ ] Pairing code joins a web session.
@@ -50,6 +51,26 @@ This checklist prepares RadVoice for private TestFlight evaluation. It is not pu
 - [ ] Apple Speech permission flow works.
 - [ ] Pause/resume/stop does not duplicate fragments.
 - [ ] Failed API sends keep unsent text visible.
+
+## Current Xcode Project Settings
+
+- Project: `apps/ios/RadVoice.xcodeproj`
+- Scheme: `RadVoice`
+- Bundle identifier: `com.radvoice.demo`
+- Version: `0.1.0`
+- Build: `1`
+- Deployment target: iOS `17.0`
+- Signing team: intentionally blank for local/private configuration
+- Info plist: `apps/ios/RadVoiceApp/Info.plist`
+
+Mac verification command:
+
+```bash
+cd apps/ios
+xcodebuild -project RadVoice.xcodeproj -scheme RadVoice -destination 'platform=iOS Simulator,name=iPhone 15' build
+```
+
+This command has not been run in the Windows workspace.
 
 ## Safety Review
 
