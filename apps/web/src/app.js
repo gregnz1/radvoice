@@ -1,6 +1,6 @@
-import { formatDictation } from "./formatter.js?v=privacy-redaction";
-import { detectPatientIdentifiers, redactPatientIdentifiers } from "./privacy.js?v=privacy-redaction";
-import { samples, templates } from "./templates.js?v=privacy-redaction";
+import { formatDictation } from "./formatter.js?v=safety-qa";
+import { detectPatientIdentifiers, redactPatientIdentifiers } from "./privacy.js?v=safety-qa";
+import { samples, templates } from "./templates.js?v=safety-qa";
 
 const API_BASE = "http://localhost:8787";
 const templateSelect = document.querySelector("#templateSelect");
@@ -9,8 +9,12 @@ const privacyNotice = document.querySelector("#privacyNotice");
 const reportOutput = document.querySelector("#reportOutput");
 const jsonOutput = document.querySelector("#jsonOutput");
 const finalReportInput = document.querySelector("#finalReportInput");
+const approvalStatus = document.querySelector("#approvalStatus");
+const approveButton = document.querySelector("#approveButton");
 const flagList = document.querySelector("#flagList");
 const flagCount = document.querySelector("#flagCount");
+const revisionMeta = document.querySelector("#revisionMeta");
+const revisionList = document.querySelector("#revisionList");
 const wordCount = document.querySelector("#wordCount");
 const sessionId = document.querySelector("#sessionId");
 const pairingCode = document.querySelector("#pairingCode");
@@ -30,6 +34,9 @@ let pollTimer = 0;
 let privacyTimer = 0;
 let finalReportDirty = false;
 let lastGeneratedReport = "";
+let revisions = [];
+let finalApproved = false;
+let currentFlags = [];
 
 for (const template of templates) {
   const option = document.createElement("option");
@@ -62,12 +69,17 @@ clearButton.addEventListener("click", () => {
   pairingCode.textContent = "----";
   finalReportInput.value = "";
   finalReportDirty = false;
+  finalApproved = false;
+  revisions = [];
+  renderRevisions();
+  updateApprovalState();
   stopPolling();
   stopMockStream();
   render();
 });
 
 copyButton.addEventListener("click", async () => {
+  if (copyButton.disabled) return;
   await navigator.clipboard.writeText(finalReportInput.value);
   copyButton.textContent = "Copied";
   setTimeout(() => {
@@ -75,8 +87,15 @@ copyButton.addEventListener("click", async () => {
   }, 1200);
 });
 
+approveButton.addEventListener("click", () => {
+  finalApproved = true;
+  updateApprovalState();
+});
+
 finalReportInput.addEventListener("input", () => {
   finalReportDirty = finalReportInput.value !== lastGeneratedReport;
+  finalApproved = false;
+  updateApprovalState();
 });
 
 document.querySelectorAll(".sample").forEach((button) => {
@@ -124,6 +143,7 @@ function renderLocalPreview() {
 
 async function renderFromApi() {
   try {
+    const inputPrivacyFlags = buildInputPrivacyFlags(dictationInput.value);
     const safeText = redactPatientIdentifiers(dictationInput.value).text;
     const response = await fetch(`${API_BASE}/format`, {
       method: "POST",
@@ -137,7 +157,10 @@ async function renderFromApi() {
     if (!response.ok) throw new Error(`Formatter API returned ${response.status}`);
 
     const result = await response.json();
-    showResult(result);
+    showResult({
+      ...result,
+      flags: mergeFlags(result.flags, inputPrivacyFlags),
+    });
     markApiConnected();
   } catch {
     const result = formatDictation(dictationInput.value, getTemplate());
@@ -155,6 +178,30 @@ async function renderFromApi() {
     });
     apiStatus.textContent = "Disconnected";
   }
+}
+
+function buildInputPrivacyFlags(text) {
+  if (detectPatientIdentifiers(text).length === 0) return [];
+
+  return [
+    {
+      severity: "critical",
+      category: "privacy",
+      message: "Possible patient identifier detected. RadVoice should not receive patient information.",
+    },
+  ];
+}
+
+function mergeFlags(primaryFlags = [], additionalFlags = []) {
+  const merged = [...primaryFlags];
+
+  for (const flag of additionalFlags) {
+    if (!merged.some((item) => item.severity === flag.severity && item.category === flag.category && item.message === flag.message)) {
+      merged.push(flag);
+    }
+  }
+
+  return merged;
 }
 
 async function refreshHealth() {
@@ -194,6 +241,8 @@ async function createSession({ clearText }) {
     dictationInput.value = "";
     finalReportDirty = false;
     finalReportInput.value = "";
+    finalApproved = false;
+    updateApprovalState();
   }
 
   showSession(session);
@@ -350,11 +399,15 @@ function showResult(result) {
   providerStatus.textContent = result.provider ?? "Unknown";
   lastSyncStatus.textContent = new Date().toLocaleTimeString();
   lastGeneratedReport = result.report;
+  currentFlags = result.flags ?? [];
+  addRevision(result);
+  finalApproved = false;
   if (!finalReportDirty) {
     finalReportInput.value = result.report;
   }
   jsonOutput.textContent = JSON.stringify(result, null, 2);
   renderFlags(result.flags);
+  updateApprovalState();
 }
 
 function schedulePrivacyRedaction() {
@@ -409,6 +462,80 @@ function renderFlags(flags) {
   }
 }
 
+function addRevision(result) {
+  if (!result.report) return;
+
+  const latest = revisions[0];
+  if (latest?.report === result.report && latest?.provider === result.provider) {
+    renderRevisions();
+    return;
+  }
+
+  revisions.unshift({
+    id: crypto.randomUUID(),
+    report: result.report,
+    provider: result.provider ?? "Unknown",
+    generatedAt: result.generatedAt ?? new Date().toISOString(),
+  });
+  revisions = revisions.slice(0, 8);
+  renderRevisions();
+}
+
+function renderRevisions() {
+  revisionList.replaceChildren();
+  revisionMeta.textContent = `${revisions.length} ${revisions.length === 1 ? "revision" : "revisions"}`;
+
+  if (revisions.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty";
+    empty.textContent = "No generated drafts yet.";
+    revisionList.append(empty);
+    return;
+  }
+
+  for (const [index, revision] of revisions.entries()) {
+    const item = document.createElement("div");
+    item.className = "revision-item";
+
+    const details = document.createElement("p");
+    details.textContent = `#${revisions.length - index} ${new Date(revision.generatedAt).toLocaleTimeString()} - ${revision.provider}`;
+
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.className = "secondary";
+    restore.textContent = "Restore";
+    restore.addEventListener("click", () => {
+      finalReportInput.value = revision.report;
+      finalReportDirty = finalReportInput.value !== lastGeneratedReport;
+      finalApproved = false;
+      updateApprovalState();
+    });
+
+    item.append(details, restore);
+    revisionList.append(item);
+  }
+}
+
+function updateApprovalState() {
+  const hasPrivacyBlock = currentFlags.some(
+    (flag) => flag.category === "privacy" && flag.severity === "critical",
+  );
+
+  approveButton.disabled = hasPrivacyBlock || finalReportInput.value.trim().length === 0;
+  copyButton.disabled = !finalApproved || hasPrivacyBlock;
+
+  approvalStatus.classList.toggle("approved", finalApproved && !hasPrivacyBlock);
+  approvalStatus.classList.toggle("blocked", hasPrivacyBlock);
+
+  if (hasPrivacyBlock) {
+    approvalStatus.textContent = "Copy blocked: privacy flag must be cleared before approval.";
+  } else if (finalApproved) {
+    approvalStatus.textContent = "Approved for copy.";
+  } else {
+    approvalStatus.textContent = "Not approved. Review and approve before copy.";
+  }
+}
+
 function markApiConnected() {
   apiStatus.textContent = "Connected";
 }
@@ -419,6 +546,27 @@ function applyScenario(scenario) {
   if (scenario === "privacy") {
     templateSelect.value = "generic-report";
     dictationInput.value = "patient name jane smith dob 01/02/1950 indication cough technique chest xray findings lungs clear impression no acute disease";
+    render();
+    return;
+  }
+
+  if (scenario === "approval") {
+    templateSelect.value = "ct-abdomen-pelvis";
+    dictationInput.value = samples.ctap;
+    render();
+    return;
+  }
+
+  if (scenario === "privacy-block") {
+    templateSelect.value = "generic-report";
+    dictationInput.value = "patient name alex taylor dob 04/05/1960 indication cough technique chest radiograph findings lungs clear impression no acute cardiopulmonary abnormality";
+    render();
+    return;
+  }
+
+  if (scenario === "consistency") {
+    templateSelect.value = "generic-report";
+    dictationInput.value = "indication shortness of breath technique chest radiograph findings lungs clear impression small right pneumothorax";
     render();
     return;
   }
@@ -480,4 +628,6 @@ templateSelect.value = "generic-report";
 dictationInput.value = samples.generic;
 void refreshHealth();
 window.setInterval(refreshHealth, 5000);
+renderRevisions();
+updateApprovalState();
 render();

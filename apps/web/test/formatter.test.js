@@ -116,4 +116,29 @@ const genericNoImpressionResult = formatDictation(
 
 assert.ok(genericNoImpressionResult.flags.some((flag) => flag.category === "impression"));
 
+const unsupportedImpressionResult = formatDictation(
+  "indication cough technique chest xray findings lungs clear impression pneumothorax",
+  generic,
+);
+
+assert.ok(unsupportedImpressionResult.flags.some((flag) => flag.category === "consistency"));
+
+const omittedFindingResult = formatDictation(
+  "indication cough technique chest xray findings pneumothorax impression follow up",
+  generic,
+);
+
+assert.ok(
+  omittedFindingResult.flags.some(
+    (flag) => flag.category === "consistency" && flag.message.includes("absent from the impression"),
+  ),
+);
+
+const lateralityMismatchResult = formatDictation(
+  "indication pain technique ultrasound findings left renal lesion impression right renal lesion",
+  generic,
+);
+
+assert.ok(lateralityMismatchResult.flags.some((flag) => flag.category === "laterality-mismatch"));
+
 console.log("formatter tests passed");

@@ -194,6 +194,21 @@ const lateralityRequiredTerms = [
   "fracture",
 ];
 const measurementRequiredTerms = ["mass", "lesion", "nodule", "collection"];
+const consistencyTerms = [
+  "mass",
+  "lesion",
+  "nodule",
+  "fracture",
+  "hemorrhage",
+  "infarct",
+  "embolus",
+  "pneumothorax",
+  "effusion",
+  "obstruction",
+  "collection",
+  "abscess",
+  "appendicitis",
+];
 export function formatDictation(input, template) {
   const normalized = normalize(input);
   const sectionFindings = new Map(template.sections.map((section) => [section, []]));
@@ -213,8 +228,8 @@ export function formatDictation(input, template) {
     }
   }
 
-  const flags = buildFlags(normalized, sectionFindings, template, genericSections);
   const impression = genericSections?.impression ?? buildImpression(normalized, template, sectionFindings);
+  const flags = buildFlags(normalized, sectionFindings, template, genericSections, impression);
   const report = buildReport(template, sectionFindings, impression, flags);
 
   return {
@@ -299,7 +314,7 @@ function buildImpression(text, template, sectionFindings) {
   return "No acute abnormality identified on this draft.";
 }
 
-function buildFlags(text, sectionFindings, template, genericSections) {
+function buildFlags(text, sectionFindings, template, genericSections, impression) {
   const flags = [];
   const hasLaterality = lateralityTerms.some((term) => text.includes(term));
   const hasMeasure = /\b\d+(\.\d+)?\s*(mm|cm)\b/i.test(text);
@@ -358,6 +373,8 @@ function buildFlags(text, sectionFindings, template, genericSections) {
     });
   }
 
+  addConsistencyFlags(flags, text, sectionFindings, impression);
+
   if (/\b(no|without)\b.*\b(fracture|bleed|hemorrhage|pneumothorax)\b/i.test(text) && /\b(fracture|bleed|hemorrhage|pneumothorax)\b.*\bpresent\b/i.test(text)) {
     flags.push({
       severity: "critical",
@@ -376,6 +393,57 @@ function buildFlags(text, sectionFindings, template, genericSections) {
   }
 
   return flags;
+}
+
+function addConsistencyFlags(flags, sourceText, sectionFindings, impression) {
+  const findingText = Array.from(sectionFindings.values()).flat().join(" ").toLowerCase();
+  const impressionText = impression.toLowerCase();
+
+  for (const term of consistencyTerms) {
+    const findingPositive = hasPositiveCandidate(findingText, [term]);
+    const impressionPositive = hasPositiveCandidate(impressionText, [term]);
+
+    if (findingPositive && !impressionText.includes(term)) {
+      flags.push({
+        severity: "warning",
+        category: "consistency",
+        message: `A positive ${term} finding may be absent from the impression.`,
+      });
+    }
+
+    if (impressionPositive && !findingText.includes(term)) {
+      flags.push({
+        severity: "warning",
+        category: "consistency",
+        message: `The impression mentions ${term}, but the generated findings may not support it.`,
+      });
+    }
+  }
+
+  if (hasLateralityMismatch(sourceText, findingText, impressionText)) {
+    flags.push({
+      severity: "warning",
+      category: "laterality-mismatch",
+      message: "Dictated laterality may not match the generated report laterality.",
+    });
+  }
+}
+
+function hasLateralityMismatch(sourceText, findingText, impressionText) {
+  const findingsLeft = /\bleft\b/i.test(findingText);
+  const findingsRight = /\bright\b/i.test(findingText);
+  const impressionLeft = /\bleft\b/i.test(impressionText);
+  const impressionRight = /\bright\b/i.test(impressionText);
+
+  if ((findingsLeft && impressionRight) || (findingsRight && impressionLeft)) return true;
+
+  const sourceLeft = /\bleft\b/i.test(sourceText);
+  const sourceRight = /\bright\b/i.test(sourceText);
+  const reportText = `${findingText} ${impressionText}`;
+  const reportLeft = /\bleft\b/i.test(reportText);
+  const reportRight = /\bright\b/i.test(reportText);
+
+  return (sourceLeft && !sourceRight && reportRight && !reportLeft) || (sourceRight && !sourceLeft && reportLeft && !reportRight);
 }
 
 function hasNearbySite(text) {

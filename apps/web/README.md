@@ -34,7 +34,9 @@ http://localhost:5173
 - Visible no-patient-identifiers and draft-only positioning.
 - Formatter API integration with browser-local fallback.
 - Editable final report panel.
-- Copy button copies the edited final report.
+- Approval-gated copy workflow for the edited final report.
+- Strict privacy copy block when identifier flags are present.
+- Recent generated draft revision history with intentional restore.
 - Active session polling for iPhone/web sync.
 - Demo health status strip.
 - Guided demo scenarios for generic report, CT abdomen/pelvis, and privacy guardrail.
@@ -42,7 +44,7 @@ http://localhost:5173
 - Live session creation.
 - Short pairing code display for the iPhone client.
 - Mock iPhone transcript streaming into the backend.
-- Quality flags for laterality, measurement, contradiction, and unsupported text.
+- Quality flags for laterality, measurement, consistency, contradiction, and unsupported text.
 - Privacy flag for obvious patient identifiers.
 - Targeted patient identifier redaction after a short warning delay.
 - Copy-ready report output.

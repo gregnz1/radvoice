@@ -44,12 +44,13 @@
 
 ## Phase 4: Safety And QA
 
-- Laterality checker.
-- Measurement checker.
-- Findings/impression consistency checker.
-- Unsupported claim detector.
-- Revision history.
-- Final approval state.
+- [x] Laterality checker.
+- [x] Measurement checker.
+- [x] Findings/impression consistency checker.
+- [x] Unsupported claim detector.
+- [x] Revision history.
+- [x] Final approval state.
+- [x] Strict privacy copy blocking.
 
 ## Phase 5: Clinical Hardening
 

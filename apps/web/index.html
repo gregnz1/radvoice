@@ -83,6 +83,9 @@
             <button class="scenario" type="button" data-scenario="usabdo">US Abdomen</button>
             <button class="scenario" type="button" data-scenario="ambiguity">Ambiguity Example</button>
             <button class="scenario" type="button" data-scenario="privacy">Privacy Guardrail</button>
+            <button class="scenario" type="button" data-scenario="approval">Approval Flow</button>
+            <button class="scenario" type="button" data-scenario="privacy-block">Privacy Copy Block</button>
+            <button class="scenario" type="button" data-scenario="consistency">Consistency Warning</button>
           </div>
         </aside>
 
@@ -111,8 +114,12 @@
         <section class="panel" aria-label="Editable final report">
           <div class="panel-head">
             <h2>Final Report</h2>
-            <button id="copyButton" type="button" class="secondary">Copy Final</button>
+            <div class="final-actions">
+              <button id="approveButton" type="button" class="secondary">Approve Final</button>
+              <button id="copyButton" type="button" class="secondary" disabled>Copy Final</button>
+            </div>
           </div>
+          <div id="approvalStatus" class="approval-status">Not approved. Review and approve before copy.</div>
           <textarea
             id="finalReportInput"
             class="final-report-input"
@@ -136,8 +143,16 @@
           <pre id="jsonOutput" class="json-output"></pre>
         </section>
       </section>
+
+      <section class="panel revisions-panel" aria-label="Revision history">
+        <div class="panel-head">
+          <h2>Revision History</h2>
+          <span id="revisionMeta">0 revisions</span>
+        </div>
+        <div id="revisionList" class="revision-list"></div>
+      </section>
     </main>
 
-    <script type="module" src="./src/app.js?v=privacy-redaction"></script>
+    <script type="module" src="./src/app.js?v=safety-qa"></script>
   </body>
 </html>

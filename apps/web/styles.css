@@ -200,6 +200,41 @@ button:hover {
   background: var(--surface-soft);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.final-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.approval-status {
+  margin: 12px 14px 0;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.approval-status.approved {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.approval-status.blocked {
+  border-color: #fecaca;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 .button-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -360,6 +395,32 @@ textarea {
 
 .empty {
   color: var(--muted);
+}
+
+.revisions-panel {
+  margin-top: 14px;
+}
+
+.revision-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.revision-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+}
+
+.revision-item p {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 @media (max-width: 1050px) {

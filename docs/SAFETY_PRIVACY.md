@@ -12,8 +12,12 @@ RadVoice should not accept patient identifiers or store patient information.
 
 - Show raw transcript alongside generated draft.
 - Keep generated report text editable.
+- Require explicit final approval before copy.
+- Clear approval whenever a generated draft changes or the final text is edited.
+- Track recent generated draft revisions in the active browser session.
 - Do not auto-submit to RIS.
 - Do not accept patient identifiers.
+- Block copy when a critical privacy flag is present.
 - Do not invent normal findings unless explicitly permitted by a selected normal template.
 - Flag uncertainty rather than resolving it silently.
 - Highlight laterality, measurement, and contradiction risks.

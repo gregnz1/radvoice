@@ -30,15 +30,18 @@ Optional smoke test:
 2. Click `Generic Report`.
 3. Show raw dictation becoming a structured draft.
 4. Edit the `Final Report` panel.
-5. Click `Copy Final`.
-6. Click `New Session`.
-7. Show the six-character pairing code.
-8. Click `Mock iPhone`.
-9. Show transcript fragments and the report updating.
-10. Click `Privacy Guardrail`.
-11. Show the critical privacy flag.
-12. Type or paste a phrase such as `patient name Jane Smith dob 01/02/1950 indication cough`.
-13. Show the warning, then the targeted redaction after 5 seconds.
+5. Show that `Copy Final` is disabled until `Approve Final` is clicked.
+6. Click `Approve Final`, then show `Copy Final` becoming available.
+7. Click `New Session`.
+8. Show the six-character pairing code.
+9. Click `Mock iPhone`.
+10. Show transcript fragments, report updates, and revision count changes.
+11. Restore a prior generated draft from `Revision History` and point out that this clears approval.
+12. Click `Privacy Copy Block`.
+13. Show the critical privacy flag and blocked copy state.
+14. Show the targeted redaction after 5 seconds, then re-approve once the privacy flag clears.
+15. Click `Consistency Warning`.
+16. Show the warning flag for a finding/impression mismatch.
 
 ## Notes
 
