@@ -282,6 +282,17 @@ button:hover {
   font-size: 13px;
 }
 
+.privacy-notice {
+  margin: 12px 14px 0;
+  padding: 10px 11px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 textarea {
   width: 100%;
   min-height: 440px;

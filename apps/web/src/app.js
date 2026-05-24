@@ -1,9 +1,11 @@
-import { formatDictation } from "./formatter.js?v=radiology-quality";
-import { samples, templates } from "./templates.js?v=radiology-quality";
+import { formatDictation } from "./formatter.js?v=privacy-redaction";
+import { detectPatientIdentifiers, redactPatientIdentifiers } from "./privacy.js?v=privacy-redaction";
+import { samples, templates } from "./templates.js?v=privacy-redaction";
 
 const API_BASE = "http://localhost:8787";
 const templateSelect = document.querySelector("#templateSelect");
 const dictationInput = document.querySelector("#dictationInput");
+const privacyNotice = document.querySelector("#privacyNotice");
 const reportOutput = document.querySelector("#reportOutput");
 const jsonOutput = document.querySelector("#jsonOutput");
 const finalReportInput = document.querySelector("#finalReportInput");
@@ -25,6 +27,7 @@ const mockStreamButton = document.querySelector("#mockStreamButton");
 let activeSessionId = "";
 let streamTimer = 0;
 let pollTimer = 0;
+let privacyTimer = 0;
 let finalReportDirty = false;
 let lastGeneratedReport = "";
 
@@ -39,6 +42,7 @@ formatButton.addEventListener("click", render);
 templateSelect.addEventListener("change", render);
 dictationInput.addEventListener("input", () => {
   updateWordCount();
+  schedulePrivacyRedaction();
   renderLocalPreview();
 });
 
@@ -52,6 +56,7 @@ mockStreamButton.addEventListener("click", async () => {
 
 clearButton.addEventListener("click", () => {
   dictationInput.value = "";
+  clearPrivacyNotice();
   activeSessionId = "";
   sessionId.textContent = "No session";
   pairingCode.textContent = "----";
@@ -119,12 +124,13 @@ function renderLocalPreview() {
 
 async function renderFromApi() {
   try {
+    const safeText = redactPatientIdentifiers(dictationInput.value).text;
     const response = await fetch(`${API_BASE}/format`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         templateId: getTemplate().id,
-        text: dictationInput.value,
+        text: safeText,
       }),
     });
 
@@ -203,7 +209,7 @@ async function appendSegment(text) {
   const response = await fetch(`${API_BASE}/sessions/${activeSessionId}/segments`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ source: "iphone-mock", text }),
+    body: JSON.stringify({ source: "iphone-mock", text: redactPatientIdentifiers(text).text }),
   });
 
   if (!response.ok) {
@@ -220,6 +226,7 @@ function showSession(session) {
   activeSessionId = session.id;
   showSessionIdentity(session);
   dictationInput.value = session.segments.map((segment) => segment.text).join(" ");
+  clearPrivacyNotice();
   updateWordCount();
   showResult({
     ...session.draft,
@@ -348,6 +355,38 @@ function showResult(result) {
   }
   jsonOutput.textContent = JSON.stringify(result, null, 2);
   renderFlags(result.flags);
+}
+
+function schedulePrivacyRedaction() {
+  window.clearTimeout(privacyTimer);
+  const detections = detectPatientIdentifiers(dictationInput.value);
+
+  if (detections.length === 0) {
+    clearPrivacyNotice();
+    return;
+  }
+
+  privacyNotice.hidden = false;
+  privacyNotice.textContent = `Possible patient identifier detected (${detections
+    .map((item) => item.category)
+    .join(", ")}). Offending text will be redacted in 5 seconds.`;
+
+  privacyTimer = window.setTimeout(() => {
+    const redacted = redactPatientIdentifiers(dictationInput.value);
+    if (redacted.redacted) {
+      dictationInput.value = redacted.text;
+      updateWordCount();
+      render();
+    }
+    clearPrivacyNotice();
+  }, 5000);
+}
+
+function clearPrivacyNotice() {
+  window.clearTimeout(privacyTimer);
+  privacyTimer = 0;
+  privacyNotice.hidden = true;
+  privacyNotice.textContent = "";
 }
 
 function renderFlags(flags) {

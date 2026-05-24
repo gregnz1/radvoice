@@ -1,3 +1,5 @@
+import { detectPatientIdentifiers } from "./privacy.js";
+
 const rules = [
   {
     section: "Liver",
@@ -192,19 +194,6 @@ const lateralityRequiredTerms = [
   "fracture",
 ];
 const measurementRequiredTerms = ["mass", "lesion", "nodule", "collection"];
-const patientIdentifierPatterns = [
-  /\b(patient name|name is|patient is)\b/i,
-  /\b(date of birth|dob)\b/i,
-  /\b(mrn|medical record|ur number|urn)\b/i,
-  /\b(accession|acc number)\b/i,
-  /\b(medicare number|medicare)\b/i,
-  /\b\d{2}[/-]\d{2}[/-]\d{2,4}\b/,
-  /\b\d{6,}\b/,
-  /\b[A-Z]{2,4}\d{5,}\b/i,
-  /\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/i,
-  /\b(?:\+?\d[\d\s().-]{7,}\d)\b/,
-];
-
 export function formatDictation(input, template) {
   const normalized = normalize(input);
   const sectionFindings = new Map(template.sections.map((section) => [section, []]));
@@ -319,9 +308,7 @@ function buildFlags(text, sectionFindings, template, genericSections) {
   const hasPositiveMeasurableFinding = hasPositiveCandidate(text, measurementRequiredTerms);
   const hasUnspecifiedSiteFinding = hasPositiveCandidate(text, ["mass", "lesion", "nodule"]) && !hasNearbySite(text);
   const hasComparisonWithoutDate = /\b(comparison|compared|prior|previous)\b/i.test(text) && !hasComparisonDate(text);
-  const hasPossiblePatientIdentifier = patientIdentifierPatterns.some((pattern) =>
-    pattern.test(text),
-  );
+  const hasPossiblePatientIdentifier = detectPatientIdentifiers(text).length > 0;
 
   if (hasPossiblePatientIdentifier) {
     flags.push({

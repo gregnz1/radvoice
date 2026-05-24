@@ -73,6 +73,28 @@ async function testLocalRuleFallback() {
     const updatedSession = await segmentResponse.json();
     assert.equal(updatedSession.segments.length, 1);
     assert.match(updatedSession.draft.report, /No acute intracranial hemorrhage/);
+
+    const privacySessionResponse = await fetch(`http://localhost:${port}/sessions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ templateId: "generic-report" }),
+    });
+    const privacySession = await privacySessionResponse.json();
+    const privacySegmentResponse = await fetch(
+      `http://localhost:${port}/sessions/${privacySession.id}/segments`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          source: "iphone",
+          text: "patient name Jane Smith dob 01/02/1950 indication cough findings lungs clear impression normal",
+        }),
+      },
+    );
+    const privacyUpdatedSession = await privacySegmentResponse.json();
+    assert.equal(privacyUpdatedSession.segments[0].redacted, true);
+    assert.match(privacyUpdatedSession.segments[0].text, /\[REDACTED PATIENT-NAME\]/);
+    assert.doesNotMatch(privacyUpdatedSession.segments[0].text, /Jane Smith/i);
   } finally {
     server.kill();
   }
@@ -191,4 +213,3 @@ function close(server) {
     });
   });
 }
-

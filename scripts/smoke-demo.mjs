@@ -27,6 +27,21 @@ assert(updatedSession.segments.length === 1, "updated session should include app
 assert(typeof updatedSession.draft?.report === "string", "updated session should include draft report");
 assert(typeof updatedSession.updatedAt === "string", "updated session should include updatedAt for polling");
 
+const privacySession = await postJson("/sessions", { templateId: "generic-report" });
+const privacyUpdatedSession = await postJson(`/sessions/${privacySession.id}/segments`, {
+  source: "smoke-test",
+  text: "patient name Jane Smith dob 01/02/1950 indication cough findings lungs clear impression normal",
+});
+assert(privacyUpdatedSession.segments[0].redacted === true, "privacy segment should be marked redacted");
+assert(
+  privacyUpdatedSession.segments[0].text.includes("[REDACTED PATIENT-NAME]"),
+  "privacy segment should redact patient name",
+);
+assert(
+  !privacyUpdatedSession.segments[0].text.includes("Jane Smith"),
+  "privacy segment should not retain patient name",
+);
+
 console.log("smoke demo passed");
 console.log(`provider: ${formatted.provider}`);
 console.log(`session: ${session.id}`);
@@ -53,4 +68,3 @@ function assert(condition, message) {
     throw new Error(message);
   }
 }
-

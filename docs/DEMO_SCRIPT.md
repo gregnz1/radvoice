@@ -37,10 +37,11 @@ Optional smoke test:
 9. Show transcript fragments and the report updating.
 10. Click `Privacy Guardrail`.
 11. Show the critical privacy flag.
+12. Type or paste a phrase such as `patient name Jane Smith dob 01/02/1950 indication cough`.
+13. Show the warning, then the targeted redaction after 5 seconds.
 
 ## Notes
 
 - No patient identifiers should be entered during real use.
 - The current demo uses in-memory sessions.
 - OpenAI formatting is optional. If it is disabled or unavailable, the local rule formatter is used.
-

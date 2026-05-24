@@ -44,5 +44,6 @@ http://localhost:5173
 - Mock iPhone transcript streaming into the backend.
 - Quality flags for laterality, measurement, contradiction, and unsupported text.
 - Privacy flag for obvious patient identifiers.
+- Targeted patient identifier redaction after a short warning delay.
 - Copy-ready report output.
 - JSON formatter contract preview.

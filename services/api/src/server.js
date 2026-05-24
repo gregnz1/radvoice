@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { templates } from "../../../apps/web/src/templates.js";
 import { formatReport } from "./formatterService.js";
+import { redactPatientIdentifiers } from "../../../apps/web/src/privacy.js";
 
 loadEnvFile(new URL("../../../.env", import.meta.url));
 loadEnvFile(new URL("../.env", import.meta.url));
@@ -98,7 +99,8 @@ async function handleFormat(request, response) {
       return;
     }
 
-    const result = await formatReport(body.text, template);
+    const privacy = redactPatientIdentifiers(body.text);
+    const result = await formatReport(privacy.text, template);
     sendJson(response, 200, result);
   } catch (error) {
     sendJson(response, 400, {
@@ -194,12 +196,14 @@ async function handleAddSegment(request, response, sessionId) {
   }
 
   const now = new Date().toISOString();
+  const privacy = redactPatientIdentifiers(body.text.trim());
   session.segments.push({
     id: crypto.randomUUID(),
-    text: body.text.trim(),
+    text: privacy.text,
     source: typeof body.source === "string" ? body.source : "iphone",
     sequence: session.segments.length + 1,
     createdAt: now,
+    redacted: privacy.redacted,
   });
 
   const template = templates.find((item) => item.id === session.templateId) ?? templates[0];
