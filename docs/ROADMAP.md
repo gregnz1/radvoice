@@ -31,13 +31,16 @@
 
 ## Phase 3: Radiology Formatting
 
-- CT abdomen/pelvis template.
-- CT head template.
-- Chest x-ray template.
-- MRI brain template.
-- Personal phrase library.
-- Impression generator.
-- Ambiguity flags.
+- [x] CT abdomen/pelvis template.
+- [x] CT head template.
+- [x] Chest x-ray template.
+- [x] CT chest template.
+- [x] CT pulmonary angiogram template.
+- [x] MRI brain template.
+- [x] Ultrasound abdomen template.
+- [x] Personal phrase library.
+- [x] Impression generator baseline.
+- [x] Ambiguity flags.
 
 ## Phase 4: Safety And QA
 

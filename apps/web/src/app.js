@@ -1,5 +1,5 @@
-import { formatDictation } from "./formatter.js?v=basic-demo";
-import { samples, templates } from "./templates.js?v=basic-demo";
+import { formatDictation } from "./formatter.js?v=radiology-quality";
+import { samples, templates } from "./templates.js?v=radiology-quality";
 
 const API_BASE = "http://localhost:8787";
 const templateSelect = document.querySelector("#templateSelect");
@@ -81,6 +81,10 @@ document.querySelectorAll(".sample").forEach((button) => {
     if (button.dataset.sample === "cxr") templateSelect.value = "chest-xray";
     if (button.dataset.sample === "ctap") templateSelect.value = "ct-abdomen-pelvis";
     if (button.dataset.sample === "generic") templateSelect.value = "generic-report";
+    if (button.dataset.sample === "ctchest") templateSelect.value = "ct-chest";
+    if (button.dataset.sample === "ctpa") templateSelect.value = "ctpa";
+    if (button.dataset.sample === "mribrain") templateSelect.value = "mri-brain";
+    if (button.dataset.sample === "usabdo") templateSelect.value = "us-abdomen";
     render();
   });
 });
@@ -318,6 +322,11 @@ function getMockFragments() {
     ];
   }
 
+  if (templateSelect.value === "ct-chest") return splitSample(samples.ctchest);
+  if (templateSelect.value === "ctpa") return splitSample(samples.ctpa);
+  if (templateSelect.value === "mri-brain") return splitSample(samples.mribrain);
+  if (templateSelect.value === "us-abdomen") return splitSample(samples.usabdo);
+
   return [
     "ct abdomen pelvis with contrast",
     "liver fine gallbladder removed",
@@ -375,6 +384,41 @@ function applyScenario(scenario) {
     return;
   }
 
+  if (scenario === "ctchest") {
+    templateSelect.value = "ct-chest";
+    dictationInput.value = samples.ctchest;
+    render();
+    return;
+  }
+
+  if (scenario === "ctpa") {
+    templateSelect.value = "ctpa";
+    dictationInput.value = samples.ctpa;
+    render();
+    return;
+  }
+
+  if (scenario === "mribrain") {
+    templateSelect.value = "mri-brain";
+    dictationInput.value = samples.mribrain;
+    render();
+    return;
+  }
+
+  if (scenario === "usabdo") {
+    templateSelect.value = "us-abdomen";
+    dictationInput.value = samples.usabdo;
+    render();
+    return;
+  }
+
+  if (scenario === "ambiguity") {
+    templateSelect.value = "ct-abdomen-pelvis";
+    dictationInput.value = samples.ambiguity;
+    render();
+    return;
+  }
+
   if (scenario === "ctap") {
     templateSelect.value = "ct-abdomen-pelvis";
     dictationInput.value = samples.ctap;
@@ -385,6 +429,12 @@ function applyScenario(scenario) {
   templateSelect.value = "generic-report";
   dictationInput.value = samples.generic;
   render();
+}
+
+function splitSample(sample) {
+  return sample
+    .split(/\s+(?=(?:lungs|pleura|mediastinum|heart|bones|impression|pulmonary|brain|ventricles|diffusion|liver|gallbladder|bile|pancreas|spleen|kidneys|aorta)\b)/i)
+    .filter(Boolean);
 }
 
 templateSelect.value = "generic-report";

@@ -38,6 +38,7 @@ http://localhost:5173
 - Active session polling for iPhone/web sync.
 - Demo health status strip.
 - Guided demo scenarios for generic report, CT abdomen/pelvis, and privacy guardrail.
+- Additional radiology scenarios for CT chest, CTPA, MRI brain, ultrasound abdomen, and ambiguity flags.
 - Live session creation.
 - Short pairing code display for the iPhone client.
 - Mock iPhone transcript streaming into the backend.

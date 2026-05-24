@@ -50,6 +50,13 @@ Impression:
 ...
 ```
 
+Template-specific reports should preserve dictated content while using preferred normal phrases such as:
+
+- No acute intracranial abnormality.
+- No acute cardiopulmonary abnormality.
+- No pulmonary embolus.
+- No acute intra-abdominal or pelvic abnormality.
+
 ## 3. Final Report Text
 
 The final report text is the clinician-approved version copied into the RIS.

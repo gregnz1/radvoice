@@ -100,9 +100,49 @@ const rules = [
     text: "No pneumothorax.",
   },
   {
+    section: "Mediastinum",
+    patterns: [/no lymphadenopathy/i, /no mediastinal lymphadenopathy/i],
+    text: "No lymphadenopathy.",
+  },
+  {
+    section: "Heart",
+    patterns: [/heart size normal/i, /cardiomediastinal (silhouette )?normal/i],
+    text: "Heart size is not enlarged.",
+  },
+  {
+    section: "Pulmonary arteries",
+    patterns: [/no pulmonary embolus/i, /no pulmonary embolism/i, /no pe\b/i],
+    text: "No pulmonary embolus.",
+  },
+  {
     section: "Bones",
     patterns: [/no acute osseous abnormality/i],
     text: "No acute osseous abnormality.",
+  },
+  {
+    section: "Diffusion",
+    patterns: [/no acute infarct/i, /no restricted diffusion/i],
+    text: "No acute infarct.",
+  },
+  {
+    section: "Extra-axial spaces",
+    patterns: [/no extra axial collection/i, /no extra-axial collection/i],
+    text: "No extra-axial collection.",
+  },
+  {
+    section: "Biliary tree",
+    patterns: [/bile ducts not dilated/i, /no biliary dilatation/i],
+    text: "No biliary dilatation.",
+  },
+  {
+    section: "Pancreas",
+    patterns: [/pancreas obscured/i],
+    text: "Obscured by bowel gas.",
+  },
+  {
+    section: "Aorta",
+    patterns: [/aorta normal/i, /no aortic aneurysm/i],
+    text: "No abdominal aortic aneurysm.",
   },
 ];
 
@@ -122,6 +162,26 @@ const findingTerms = [
 ];
 
 const lateralityTerms = ["left", "right", "bilateral"];
+const siteTerms = [
+  "renal",
+  "kidney",
+  "liver",
+  "hepatic",
+  "lung",
+  "pulmonary",
+  "adrenal",
+  "ovarian",
+  "adnexal",
+  "pancreatic",
+  "splenic",
+  "bone",
+  "osseous",
+  "breast",
+  "thyroid",
+  "bowel",
+  "colon",
+  "brain",
+];
 const lateralityRequiredTerms = [
   "mass",
   "lesion",
@@ -164,7 +224,7 @@ export function formatDictation(input, template) {
     }
   }
 
-  const flags = buildFlags(normalized, sectionFindings);
+  const flags = buildFlags(normalized, sectionFindings, template, genericSections);
   const impression = genericSections?.impression ?? buildImpression(normalized, template, sectionFindings);
   const report = buildReport(template, sectionFindings, impression, flags);
 
@@ -191,12 +251,13 @@ function addUnique(items, value) {
 }
 
 function extractGenericSections(text) {
+  const dictatedImpression = cleanGenericSection(extractBetween(text, "impression", []));
   return {
     indication: cleanGenericSection(extractBetween(text, "indication", ["technique", "findings", "impression"])),
     technique: cleanGenericSection(extractBetween(text, "technique", ["findings", "impression"])),
     findings: cleanGenericSection(extractBetween(text, "findings", ["impression"])) || cleanGenericSection(text),
-    impression:
-      cleanGenericSection(extractBetween(text, "impression", [])) || "No impression provided in dictation.",
+    impression: dictatedImpression || "No impression provided in dictation.",
+    hasDictatedImpression: dictatedImpression.length > 0,
   };
 }
 
@@ -228,6 +289,10 @@ function sentenceCase(text) {
 }
 
 function buildImpression(text, template, sectionFindings) {
+  if (template.id === "ctpa" && /\b(no pulmonary embolus|no pulmonary embolism|no pe)\b/i.test(text)) {
+    return template.normalImpression;
+  }
+
   if (/\b(nothing acute|no acute|normal)\b/i.test(text)) {
     return template.normalImpression;
   }
@@ -245,13 +310,15 @@ function buildImpression(text, template, sectionFindings) {
   return "No acute abnormality identified on this draft.";
 }
 
-function buildFlags(text, sectionFindings) {
+function buildFlags(text, sectionFindings, template, genericSections) {
   const flags = [];
   const hasLaterality = lateralityTerms.some((term) => text.includes(term));
   const hasMeasure = /\b\d+(\.\d+)?\s*(mm|cm)\b/i.test(text);
   const mentionsFinding = findingTerms.some((term) => text.includes(term));
   const hasPositiveLateralizableFinding = hasPositiveCandidate(text, lateralityRequiredTerms);
   const hasPositiveMeasurableFinding = hasPositiveCandidate(text, measurementRequiredTerms);
+  const hasUnspecifiedSiteFinding = hasPositiveCandidate(text, ["mass", "lesion", "nodule"]) && !hasNearbySite(text);
+  const hasComparisonWithoutDate = /\b(comparison|compared|prior|previous)\b/i.test(text) && !hasComparisonDate(text);
   const hasPossiblePatientIdentifier = patientIdentifierPatterns.some((pattern) =>
     pattern.test(text),
   );
@@ -280,6 +347,30 @@ function buildFlags(text, sectionFindings) {
     });
   }
 
+  if (hasUnspecifiedSiteFinding) {
+    flags.push({
+      severity: "warning",
+      category: "site",
+      message: "A lesion, mass, or nodule is mentioned without a clear organ or site.",
+    });
+  }
+
+  if (hasComparisonWithoutDate) {
+    flags.push({
+      severity: "warning",
+      category: "comparison",
+      message: "A comparison is mentioned without a clear date or source.",
+    });
+  }
+
+  if (template.generic && genericSections && !genericSections.hasDictatedImpression) {
+    flags.push({
+      severity: "warning",
+      category: "impression",
+      message: "No dictated impression was identified for this generic report.",
+    });
+  }
+
   if (/\b(no|without)\b.*\b(fracture|bleed|hemorrhage|pneumothorax)\b/i.test(text) && /\b(fracture|bleed|hemorrhage|pneumothorax)\b.*\bpresent\b/i.test(text)) {
     flags.push({
       severity: "critical",
@@ -298,6 +389,30 @@ function buildFlags(text, sectionFindings) {
   }
 
   return flags;
+}
+
+function hasNearbySite(text) {
+  for (const term of ["mass", "lesion", "nodule"]) {
+    const pattern = new RegExp(`\\b${term}\\b`, "gi");
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+      const surroundingText = text.slice(Math.max(0, match.index - 30), match.index + term.length + 30);
+      if (siteTerms.some((site) => new RegExp(`\\b${site}\\b`, "i").test(surroundingText))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function hasComparisonDate(text) {
+  return (
+    /\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/.test(text) ||
+    /\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i.test(text) ||
+    /\b\d{4}\b/.test(text)
+  );
 }
 
 function hasPositiveCandidate(text, terms) {

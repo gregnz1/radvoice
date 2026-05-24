@@ -1,4 +1,5 @@
 import { formatDictation } from "../../../apps/web/src/formatter.js";
+import { phrasePreferences } from "../../../apps/web/src/templates.js";
 
 const DEFAULT_MODEL = "gpt-4.1-mini";
 const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1";
@@ -86,6 +87,7 @@ function buildInput(text, template, localResult) {
       dictatedText: text,
       localGuardrailFlags: localResult.flags,
       localFallbackDraft: localResult.report,
+      phrasePreferences,
       noPhiPolicy: "Patient identifiers are not accepted.",
     },
     null,
