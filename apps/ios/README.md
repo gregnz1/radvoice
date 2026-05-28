@@ -4,6 +4,10 @@ This folder contains the SwiftUI source for the iPhone dictation client.
 
 The repo includes a lightweight Xcode project at `RadVoice.xcodeproj`. It talks to the local RadVoice API and can send manual, mock, and speech-recognition fragments into a live report session.
 
+Product boundary: draft only; no patient identifiers; clinician review required; no image interpretation; no diagnosis or recommendations; no RIS submission.
+
+RadVoice is for clinician-controlled draft report formatting only; it does not accept patient identifiers, interpret medical images, make diagnoses, recommend findings, or submit reports directly to a RIS.
+
 ## Open The Xcode Project
 
 1. Open Xcode on a Mac.
@@ -82,6 +86,7 @@ Use the IPv4 address for the Wi-Fi or Ethernet adapter that is on the same netwo
 - Show quality flags.
 - Disable recording until the app has joined a web-created pairing code.
 - Keep unsent manual or speech text visible if the API send fails.
+- Block obvious patient identifiers before sending and keep the text visible for editing.
 
 ## Next iPhone Work
 
@@ -126,3 +131,4 @@ Use the IPv4 address for the Wi-Fi or Ethernet adapter that is on the same netwo
 - If recording is disabled, create a web session, enter the pairing code, and tap `Join` first.
 - If speech does not start, grant both microphone and speech recognition permissions in iOS Settings.
 - If sending fails, the unsent text stays visible so it can be retried after fixing the API URL or network.
+- If the app shows `Remove patient identifiers before sending.`, edit the fragment to remove obvious name, DOB, MRN, accession, email, or phone text.

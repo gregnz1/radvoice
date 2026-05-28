@@ -1,5 +1,7 @@
 # RadVoice Demo Script
 
+Product boundary: draft only; no patient identifiers; clinician review required; no image interpretation; no diagnosis or recommendations; no RIS submission.
+
 ## Start
 
 From `C:\Claude\RadVoice`:
@@ -12,6 +14,12 @@ Open:
 
 ```text
 http://localhost:5173
+```
+
+For LAN API testing, use:
+
+```text
+http://localhost:5173/?api=http://<computer-lan-ip>:8787
 ```
 
 Optional smoke test:

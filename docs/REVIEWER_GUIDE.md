@@ -6,6 +6,8 @@ This guide is for trusted private reviewers evaluating RadVoice before TestFligh
 
 RadVoice is a clinician-controlled radiology dictation, transcription, formatting, and text-transfer tool. It helps turn fragmented dictated observations into a structured draft report that the radiologist reviews, edits, approves, and copies into the RIS.
 
+Product boundary: draft only; no patient identifiers; clinician review required; no image interpretation; no diagnosis or recommendations; no RIS submission.
+
 ## What RadVoice Is Not
 
 RadVoice is not intended to:
@@ -33,6 +35,14 @@ Open:
 ```text
 http://localhost:5173
 ```
+
+To point the web app at a LAN API for physical iPhone testing, open:
+
+```text
+http://localhost:5173/?api=http://192.168.1.25:8787
+```
+
+Use the API URL `Reset` button in the web status strip to return to `http://localhost:8787`.
 
 Run:
 
@@ -86,7 +96,7 @@ Physical iPhone:
 - No persistent encrypted storage.
 - No TLS deployment.
 - No formal HIPAA, Privacy Act, or TGA review.
-- No App Store/TestFlight metadata package.
+- TestFlight metadata, privacy policy, and support page drafts exist, but real hosted URLs are not configured.
 - No direct RIS integration.
 - No Xcode build artifact is committed.
 

@@ -4,6 +4,8 @@ RadVoice is a clinician-controlled radiology dictation, transcription, formattin
 
 The product pairs an iPhone dictation app with a synced web interface. The iPhone acts as a microphone and workflow controller. The web app shows the live transcript, structured draft report, quality flags, revision history, final approval state, and copy-ready text for manual RIS paste.
 
+Product boundary: draft only; no patient identifiers; clinician review required; no image interpretation; no diagnosis or recommendations; no RIS submission.
+
 RadVoice does not accept patient identifiers, store patient information, interpret medical images, make diagnoses, recommend findings, autonomously finalize reports, or submit reports directly to a RIS.
 
 ## Repository Status
@@ -39,6 +41,14 @@ Run the smoke test:
 ```
 
 The demo starts the API on `127.0.0.1:8787` by default and the web app on `localhost:5173`.
+
+To point the web app at a different API for LAN testing:
+
+```text
+http://localhost:5173/?api=http://192.168.1.25:8787
+```
+
+The override is saved in the browser. Use the web app `Reset` button in the API URL status pill to return to `http://localhost:8787`.
 
 ## Optional OpenAI Formatting
 
@@ -104,7 +114,7 @@ docs/
 - No persistent report/session database.
 - No direct RIS integration.
 - No production TLS/deployment configuration.
-- No App Store/TestFlight bundle metadata yet.
+- TestFlight metadata, privacy policy, and support page drafts exist, but real hosted URLs are not configured yet.
 - Xcode project skeleton is committed, but Mac/Xcode build verification is still pending.
 - Formal privacy, security, legal, and regulatory review is still required before clinical deployment.
 

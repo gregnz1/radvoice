@@ -96,7 +96,7 @@ h2 {
 
 .status-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -123,6 +123,22 @@ h2 {
 .status-pill strong {
   font-size: 13px;
   text-align: right;
+}
+
+.api-url-pill {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.api-url-pill strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-button {
+  min-height: 30px;
+  padding: 0 9px;
+  font-size: 12px;
 }
 
 .workspace {

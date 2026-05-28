@@ -1,8 +1,9 @@
+import { resetApiBase, resolveApiBase } from "./config.js?v=demo-polish";
 import { formatDictation } from "./formatter.js?v=safety-qa";
 import { detectPatientIdentifiers, redactPatientIdentifiers } from "./privacy.js?v=safety-qa";
 import { samples, templates } from "./templates.js?v=safety-qa";
 
-const API_BASE = "http://localhost:8787";
+let apiBase = resolveApiBase();
 const templateSelect = document.querySelector("#templateSelect");
 const dictationInput = document.querySelector("#dictationInput");
 const privacyNotice = document.querySelector("#privacyNotice");
@@ -22,11 +23,13 @@ const apiStatus = document.querySelector("#apiStatus");
 const providerStatus = document.querySelector("#providerStatus");
 const pollStatus = document.querySelector("#pollStatus");
 const lastSyncStatus = document.querySelector("#lastSyncStatus");
+const apiBaseStatus = document.querySelector("#apiBaseStatus");
 const formatButton = document.querySelector("#formatButton");
 const clearButton = document.querySelector("#clearButton");
 const copyButton = document.querySelector("#copyButton");
 const newSessionButton = document.querySelector("#newSessionButton");
 const mockStreamButton = document.querySelector("#mockStreamButton");
+const resetApiButton = document.querySelector("#resetApiButton");
 
 let activeSessionId = "";
 let streamTimer = 0;
@@ -59,6 +62,13 @@ newSessionButton.addEventListener("click", async () => {
 
 mockStreamButton.addEventListener("click", async () => {
   await toggleMockStream();
+});
+
+resetApiButton.addEventListener("click", () => {
+  apiBase = resetApiBase();
+  updateApiBaseStatus();
+  void refreshHealth();
+  render();
 });
 
 clearButton.addEventListener("click", () => {
@@ -145,7 +155,7 @@ async function renderFromApi() {
   try {
     const inputPrivacyFlags = buildInputPrivacyFlags(dictationInput.value);
     const safeText = redactPatientIdentifiers(dictationInput.value).text;
-    const response = await fetch(`${API_BASE}/format`, {
+    const response = await fetch(`${apiBase}/format`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -206,7 +216,7 @@ function mergeFlags(primaryFlags = [], additionalFlags = []) {
 
 async function refreshHealth() {
   try {
-    const response = await fetch(`${API_BASE}/health`);
+    const response = await fetch(`${apiBase}/health`);
     if (!response.ok) throw new Error("health failed");
     const health = await response.json();
     apiStatus.textContent = "Connected";
@@ -220,7 +230,7 @@ async function refreshHealth() {
 }
 
 async function createSession({ clearText }) {
-  const response = await fetch(`${API_BASE}/sessions`, {
+  const response = await fetch(`${apiBase}/sessions`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ templateId: getTemplate().id }),
@@ -255,13 +265,18 @@ async function appendSegment(text) {
     if (!session) return;
   }
 
-  const response = await fetch(`${API_BASE}/sessions/${activeSessionId}/segments`, {
+  const response = await fetch(`${apiBase}/sessions/${activeSessionId}/segments`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ source: "iphone-mock", text: redactPatientIdentifiers(text).text }),
   });
 
   if (!response.ok) {
+    if (await isSessionNotFound(response)) {
+      handleSessionExpired();
+      return;
+    }
+
     sessionId.textContent = "Session sync failed";
     stopMockStream();
     return;
@@ -290,8 +305,13 @@ async function pollSession() {
   if (!activeSessionId) return;
 
   try {
-    const response = await fetch(`${API_BASE}/sessions/${activeSessionId}`);
-    if (!response.ok) return;
+    const response = await fetch(`${apiBase}/sessions/${activeSessionId}`);
+    if (!response.ok) {
+      if (await isSessionNotFound(response)) {
+        handleSessionExpired();
+      }
+      return;
+    }
     const session = await response.json();
     showSession(session);
   } catch {
@@ -309,6 +329,25 @@ function stopPolling() {
   window.clearInterval(pollTimer);
   pollTimer = 0;
   pollStatus.textContent = "Idle";
+}
+
+function handleSessionExpired() {
+  activeSessionId = "";
+  stopPolling();
+  stopMockStream();
+  pollStatus.textContent = "Expired";
+  sessionId.textContent = "Session expired. Create a new session.";
+}
+
+async function isSessionNotFound(response) {
+  if (response.status !== 404) return false;
+
+  try {
+    const payload = await response.clone().json();
+    return payload.error === "session_not_found";
+  } catch {
+    return false;
+  }
 }
 
 function showSessionIdentity(session) {
@@ -626,8 +665,14 @@ function splitSample(sample) {
 
 templateSelect.value = "generic-report";
 dictationInput.value = samples.generic;
+updateApiBaseStatus();
 void refreshHealth();
 window.setInterval(refreshHealth, 5000);
 renderRevisions();
 updateApprovalState();
 render();
+
+function updateApiBaseStatus() {
+  apiBaseStatus.textContent = apiBase;
+  apiBaseStatus.title = apiBase;
+}

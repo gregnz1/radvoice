@@ -114,6 +114,11 @@ final class DictationViewModel: ObservableObject {
             return
         }
 
+        guard !hasPossiblePatientIdentifier(fragment) else {
+            statusMessage = "Remove patient identifiers before sending."
+            return
+        }
+
         if await send(fragment: fragment, source: "iphone") {
             pendingFragment = ""
         }
@@ -208,6 +213,11 @@ final class DictationViewModel: ObservableObject {
     }
 
     private func send(fragment: String, source: String) async -> Bool {
+        guard !hasPossiblePatientIdentifier(fragment) else {
+            statusMessage = "Remove patient identifiers before sending."
+            return false
+        }
+
         configureAPI()
 
         do {
@@ -239,6 +249,22 @@ final class DictationViewModel: ObservableObject {
         }
 
         return false
+    }
+
+    private func hasPossiblePatientIdentifier(_ text: String) -> Bool {
+        let patterns = [
+            "\\b(?:patient name|name is|patient is)\\s+[A-Za-z][A-Za-z' -]{1,40}",
+            "\\b(?:dob|date of birth)\\s*\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}\\b",
+            "\\b(?:mrn|medical record|ur number|urn)\\s*[A-Za-z0-9-]{4,}\\b",
+            "\\b(?:accession|acc number)\\s*[A-Za-z0-9-]{4,}\\b",
+            "\\b(?:medicare number|medicare)\\s*\\d[\\d\\s-]{7,}\\d\\b",
+            "\\b[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}\\b",
+            "\\b(?:phone|mobile|tel)\\s*\\+?\\d[\\d\\s().-]{7,}\\d\\b",
+        ]
+
+        return patterns.contains { pattern in
+            text.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
+        }
     }
 
     private func requestSpeechPermissions() async throws {

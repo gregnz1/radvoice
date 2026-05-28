@@ -4,6 +4,10 @@ This is the first local prototype for the report workspace.
 
 It runs as a static app and currently uses a rule-based formatter so it works without API keys or network access. The formatter is intentionally separated in `src/formatter.js` so it can later be replaced by a backend LLM endpoint.
 
+Product boundary: draft only; no patient identifiers; clinician review required; no image interpretation; no diagnosis or recommendations; no RIS submission.
+
+RadVoice is for clinician-controlled draft report formatting only; it does not accept patient identifiers, interpret medical images, make diagnoses, recommend findings, or submit reports directly to a RIS.
+
 ## Run
 
 Start the optional backend formatter API:
@@ -26,6 +30,14 @@ Then open:
 http://localhost:5173
 ```
 
+For LAN API testing, pass an API override:
+
+```text
+http://localhost:5173/?api=http://192.168.1.25:8787
+```
+
+The override is saved in the browser. Use the API URL `Reset` button to return to `http://localhost:8787`.
+
 ## Current Features
 
 - Template selector.
@@ -33,6 +45,7 @@ http://localhost:5173
 - Fragmented dictation input.
 - Visible no-patient-identifiers and draft-only positioning.
 - Formatter API integration with browser-local fallback.
+- Configurable API URL with browser-persisted override and reset.
 - Editable final report panel.
 - Approval-gated copy workflow for the edited final report.
 - Strict privacy copy block when identifier flags are present.
